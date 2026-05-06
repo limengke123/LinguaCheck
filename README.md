@@ -8,18 +8,18 @@ It runs entirely in the browser. There is no backend, database, login system, or
 
 - Single text input for English, Chinese, or mixed text
 - Prompt actions: Explain, EN -> ZH, ZH -> EN, Polish, Naturalness Check
-- OpenAI-compatible API support
-- Ollama local model support
-- Model switching with `Cmd + 1` and `Cmd + 2`
-- Result cards that keep previous outputs instead of overwriting them
-- API key, base URL, and model config stored in `localStorage`
+- Multiple OpenAI-compatible providers
+- Add, edit, delete, select, and test providers in the provider panel
+- Default provider setting
+- Result cards rendered as Markdown
+- API keys, base URLs, models, and provider settings stored in `localStorage`
 - Copy latest successful result as Obsidian-friendly Markdown
 
 ## Requirements
 
 - Node.js LTS is recommended
 - npm
-- Optional: Ollama, if you want to use local models
+- One or more OpenAI-compatible APIs, such as OpenAI, DeepSeek-compatible gateways, or local oMLX
 
 ## Local Development
 
@@ -41,7 +41,7 @@ Open:
 http://127.0.0.1:5173/
 ```
 
-If port `5173` is already in use, run:
+If port `5173` is already in use:
 
 ```bash
 npm run dev -- --port 5174
@@ -67,64 +67,52 @@ Preview the production build locally:
 npm run preview
 ```
 
-The preview server will print the local URL in the terminal.
+## Provider Configuration
 
-## Model Configuration
+Click `Providers` in the app to manage OpenAI-compatible providers.
 
-Open the app and fill in the provider settings.
+Each provider has:
 
-For OpenAI-compatible APIs:
+- Name
+- Base URL
+- Model
+- API Key
+- Test button
 
-- API Key: required for remote providers; optional for local providers such as oMLX
-- Base URL: defaults to `https://api.openai.com/v1`
-- Model: required, for example your chosen OpenAI-compatible model name
+Remote providers usually require an API key. Local providers such as oMLX can leave the API key empty.
 
-### oMLX
+## oMLX Example
 
-oMLX exposes an OpenAI-compatible API, not an Ollama API. Use the `OpenAI-compatible` provider in LinguaCheck.
+Use the OpenAI-compatible provider path, not an Ollama path.
 
 Recommended settings:
 
 ```text
-Provider: OpenAI-compatible
+Name: oMLX
 API Key: leave empty
 Base URL: http://localhost:8099/v1
 Model: Qwen3.6-35B-A3B-4bit
 ```
 
-LinguaCheck also accepts this base URL and will retry with `/v1` automatically if the root endpoint returns `404`:
+This also works because LinguaCheck retries with `/v1/chat/completions` after a root `404`:
 
 ```text
-http://localhost:8099
+Base URL: http://localhost:8099
 ```
 
-Do not put oMLX under the `Ollama` provider. The Ollama provider calls `/api/generate`, while oMLX uses `/v1/chat/completions`.
-
-For Ollama:
-
-- Base URL: defaults to `http://localhost:11434`
-- Model: required, for example a model you have pulled locally
-
-Example Ollama setup:
-
-```bash
-ollama pull llama3.1
-ollama serve
-```
-
-Then set the Ollama model field in the UI to:
+The request path is:
 
 ```text
-llama3.1
+/v1/chat/completions
 ```
 
 ## Browser Notes
 
 Because this app is pure frontend, requests are sent directly from the browser.
 
-- OpenAI-compatible providers must allow browser CORS requests.
-- Ollama must be running locally for Ollama mode.
+- Providers must allow browser CORS requests.
 - API keys are stored in browser `localStorage`, as required by the MVP.
+- GitHub Pages is HTTPS. Browser security may block calls from the deployed page to plain HTTP local endpoints such as `http://localhost:8099`; for local models, local development mode is usually the most reliable path.
 
 ## Obsidian Export
 

@@ -1,20 +1,25 @@
-export type Provider = "openai" | "ollama";
-
 export type ActionType = "explain" | "enToZh" | "zhToEn" | "polish" | "check";
 
+export type ProviderConfig = {
+  id: string;
+  name: string;
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+};
+
 export type Settings = {
-  openaiApiKey: string;
-  openaiBaseUrl: string;
-  openaiModel: string;
-  ollamaBaseUrl: string;
-  ollamaModel: string;
+  providers: ProviderConfig[];
+  activeProviderId: string;
+  defaultProviderId: string;
 };
 
 export type AssistantResult = {
   id: string;
   action: ActionType;
   actionLabel: string;
-  provider: Provider;
+  providerId: string;
+  providerName: string;
   input: string;
   output: string;
   createdAt: string;

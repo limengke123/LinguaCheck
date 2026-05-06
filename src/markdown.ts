@@ -5,18 +5,29 @@ export function buildObsidianMarkdown(result: AssistantResult): string {
 ${result.input}
 
 ## Meaning
-${pickSection(result.output, "Meaning") || pickSection(result.output, "Translation") || ""}
+${pickAnySection(result.output, ["含义", "翻译", "Meaning", "Translation"]) || ""}
 
 ## Correction
-${pickSection(result.output, "Corrected Version") || pickSection(result.output, "Best Version") || ""}
+${pickAnySection(result.output, ["修改版本", "最佳版本", "自然英文", "Corrected Version", "Best Version"]) || ""}
 
 ## Notes
-${pickSection(result.output, "Notes") || pickSection(result.output, "Reason") || result.output}
+${pickAnySection(result.output, ["笔记", "说明", "修改点", "原因", "Notes", "Reason"]) || result.output}
 
 ## Alternatives
-${pickSection(result.output, "Alternatives") || pickSection(result.output, "Alternative") || ""}
+${pickAnySection(result.output, ["替代表达", "更口语", "更正式", "Alternatives", "Alternative"]) || ""}
 
 #english #writing`;
+}
+
+function pickAnySection(markdown: string, headings: string[]): string {
+  for (const heading of headings) {
+    const value = pickSection(markdown, heading);
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
 }
 
 function pickSection(markdown: string, heading: string): string {

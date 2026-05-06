@@ -1,86 +1,115 @@
-import type { Provider, Settings } from "./types";
+import type { ProviderConfig } from "./types";
 
-export function validateProviderConfig(provider: Provider, settings: Settings): void {
-  if (provider === "openai") {
-    if (!settings.openaiApiKey.trim() && !isLocalBaseUrl(settings.openaiBaseUrl)) {
-      throw new Error("OpenAI API key is required.");
-    }
-    if (!settings.openaiBaseUrl.trim()) {
-      throw new Error("OpenAI base URL is required.");
-    }
-    if (!settings.openaiModel.trim()) {
-      throw new Error("OpenAI model is required.");
-    }
-    return;
-  }
+type ChatMessage = {
+  role: "system" | "user";
+  content: string;
+};
 
-  if (!settings.ollamaBaseUrl.trim()) {
-    throw new Error("Ollama base URL is required.");
+type ChatRequestResult = {
+  endpoint: string;
+  payload: OpenAiResponse | null;
+  response: Response;
+};
+
+export function validateProviderConfig(provider: ProviderConfig): void {
+  if (!provider.name.trim()) {
+    throw new Error("Provider name is required.");
   }
-  if (!settings.ollamaModel.trim()) {
-    throw new Error("Ollama model is required.");
+  if (!provider.baseUrl.trim()) {
+    throw new Error("Provider base URL is required.");
+  }
+  if (!provider.model.trim()) {
+    throw new Error("Provider model is required.");
+  }
+  if (!provider.apiKey.trim() && !isLocalBaseUrl(provider.baseUrl)) {
+    throw new Error("API key is required for non-local providers.");
   }
 }
 
-export async function runPrompt(
-  provider: Provider,
-  settings: Settings,
-  prompt: string,
-): Promise<string> {
-  validateProviderConfig(provider, settings);
+export async function runPrompt(provider: ProviderConfig, prompt: string): Promise<string> {
+  validateProviderConfig(provider);
 
-  if (provider === "openai") {
-    return runOpenAiCompatible(settings, prompt);
-  }
+  const result = await requestChatCompletion(provider, [
+    {
+      role: "system",
+      content:
+        "你是一个简洁、准确的 AI 英语助手。始终用中文解释和组织回复；英文原句、改写句和示例可以保留英文。只输出结构化 Markdown，优先给可直接复制使用的结果。",
+    },
+    {
+      role: "user",
+      content: prompt,
+    },
+  ]);
 
-  return runOllama(settings, prompt);
-}
-
-async function runOpenAiCompatible(settings: Settings, prompt: string): Promise<string> {
-  const baseUrl = trimTrailingSlash(settings.openaiBaseUrl);
-  const firstEndpoint = `${baseUrl}/chat/completions`;
-  const response = await postChatCompletion(firstEndpoint, settings, prompt);
-  const payload = await readJson<OpenAiResponse>(response);
-
-  if (
-    response.status === 404 &&
-    !baseUrl.endsWith("/v1") &&
-    !baseUrl.endsWith("/v1/")
-  ) {
-    const fallbackEndpoint = `${baseUrl}/v1/chat/completions`;
-    const fallbackResponse = await postChatCompletion(fallbackEndpoint, settings, prompt);
-    const fallbackPayload = await readJson<OpenAiResponse>(fallbackResponse);
-
-    if (!fallbackResponse.ok) {
-      throw new Error(
-        extractError(
-          fallbackPayload,
-          `OpenAI-compatible request failed (${fallbackResponse.status}) at ${fallbackEndpoint}.`,
-        ),
-      );
-    }
-
-    return extractOpenAiContent(fallbackPayload);
-  }
-
-  if (!response.ok) {
+  if (!result.response.ok) {
     throw new Error(
-      extractError(payload, `OpenAI-compatible request failed (${response.status}) at ${firstEndpoint}.`),
+      extractError(
+        result.payload,
+        `Provider request failed (${result.response.status}) at ${result.endpoint}.`,
+      ),
     );
   }
 
-  return extractOpenAiContent(payload);
+  return extractOpenAiContent(result.payload);
+}
+
+export async function testProvider(provider: ProviderConfig): Promise<string> {
+  validateProviderConfig(provider);
+
+  const result = await requestChatCompletion(provider, [
+    {
+      role: "system",
+      content: "你只需要用中文回复“连接正常”。",
+    },
+    {
+      role: "user",
+      content: "请确认连接是否正常。",
+    },
+  ]);
+
+  if (!result.response.ok) {
+    throw new Error(
+      extractError(
+        result.payload,
+        `Provider connection failed (${result.response.status}) at ${result.endpoint}.`,
+      ),
+    );
+  }
+
+  return `Connected via ${result.endpoint}`;
+}
+
+async function requestChatCompletion(
+  provider: ProviderConfig,
+  messages: ChatMessage[],
+): Promise<ChatRequestResult> {
+  const endpoints = buildChatEndpoints(provider.baseUrl);
+  let lastResult: ChatRequestResult | null = null;
+
+  for (const endpoint of endpoints) {
+    const response = await postChatCompletion(endpoint, provider, messages);
+    const payload = await readJson<OpenAiResponse>(response);
+    const result = { endpoint, payload, response };
+
+    if (response.ok || response.status !== 404) {
+      return result;
+    }
+
+    lastResult = result;
+  }
+
+  return lastResult as ChatRequestResult;
 }
 
 async function postChatCompletion(
   endpoint: string,
-  settings: Settings,
-  prompt: string,
+  provider: ProviderConfig,
+  messages: ChatMessage[],
 ): Promise<Response> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const apiKey = settings.openaiApiKey.trim();
+  const apiKey = provider.apiKey.trim();
 
   if (apiKey) {
     headers.Authorization = `Bearer ${apiKey}`;
@@ -90,58 +119,32 @@ async function postChatCompletion(
     method: "POST",
     headers,
     body: JSON.stringify({
-      model: settings.openaiModel.trim(),
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a concise AI English assistant. Return structured Markdown and prioritize copyable results.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+      model: provider.model.trim(),
+      messages,
       temperature: 0.2,
     }),
   });
 }
 
+function buildChatEndpoints(baseUrl: string): string[] {
+  const base = trimTrailingSlash(baseUrl);
+
+  if (base.endsWith("/chat/completions")) {
+    return [base];
+  }
+
+  const primary = `${base}/chat/completions`;
+  if (base.endsWith("/v1")) {
+    return [primary];
+  }
+
+  return [primary, `${base}/v1/chat/completions`];
+}
+
 function extractOpenAiContent(payload: OpenAiResponse | null): string {
   const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) {
-    throw new Error("OpenAI-compatible response did not include message content.");
-  }
-
-  return content.trim();
-}
-
-async function runOllama(settings: Settings, prompt: string): Promise<string> {
-  const baseUrl = trimTrailingSlash(settings.ollamaBaseUrl);
-  const response = await fetch(`${baseUrl}/api/generate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: settings.ollamaModel.trim(),
-      prompt,
-      stream: false,
-      options: {
-        temperature: 0.2,
-      },
-    }),
-  });
-
-  const payload = await readJson<OllamaResponse>(response);
-
-  if (!response.ok) {
-    throw new Error(extractError(payload, `Ollama request failed (${response.status}).`));
-  }
-
-  const content = payload?.response;
-  if (typeof content !== "string" || !content.trim()) {
-    throw new Error("Ollama response did not include generated text.");
+    throw new Error("Provider response did not include message content.");
   }
 
   return content.trim();
@@ -153,12 +156,6 @@ type OpenAiResponse = {
       content?: string;
     };
   }>;
-  error?: string | { message?: string };
-  message?: string;
-};
-
-type OllamaResponse = {
-  response?: string;
   error?: string | { message?: string };
   message?: string;
 };
