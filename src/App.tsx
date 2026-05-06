@@ -6,8 +6,10 @@ import {
   Copy,
   RotateCcw,
   Settings as SettingsIcon,
+  X,
+  Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { runPrompt, testProvider } from "./api";
 import { promptActions } from "./prompts";
 import { createProvider, loadSettings, saveSettings } from "./storage";
@@ -27,6 +29,8 @@ function App() {
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   const [isProviderPanelOpen, setIsProviderPanelOpen] = useState(false);
   const [connectionChecks, setConnectionChecks] = useState<Record<string, ConnectionCheck>>({});
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const actionGridRef = useRef<HTMLDivElement>(null);
 
   const activeProvider = useMemo(
     () =>
@@ -40,30 +44,81 @@ function App() {
     saveSettings(settings);
   }, [settings]);
 
+  // Auto-focus on mount
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
+  // Global keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (!event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
-        return;
+      // Auto-paste with cmd+V or ctrl+V
+      if ((event.metaKey || event.ctrlKey) && event.key === "v" && !event.shiftKey && !event.altKey) {
+        const target = event.target as HTMLElement;
+        if (target.tagName !== "TEXTAREA" && target.tagName !== "INPUT") {
+          event.preventDefault();
+          navigator.clipboard.readText().then((text) => {
+            if (text) {
+              setInput((current) => current + text);
+              textareaRef.current?.focus();
+            }
+          }).catch(() => {
+            // Fallback: just focus
+            textareaRef.current?.focus();
+          });
+          return;
+        }
       }
 
-      const index = Number(event.key) - 1;
-      if (index >= 0 && index < settings.providers.length) {
-        event.preventDefault();
-        setActiveProvider(settings.providers[index].id);
+      // Action shortcuts: Cmd/Ctrl+1-5 for actions
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
+        const actionIndex = Number(event.key) - 1;
+        if (actionIndex >= 0 && actionIndex < promptActions.length) {
+          const action = promptActions[actionIndex];
+          if (runningAction === null) {
+            event.preventDefault();
+            void handleAction(action.type);
+          }
+          return;
+        }
+
+        // Cmd/Ctrl+0 clears input
+        if (event.key === "0") {
+          event.preventDefault();
+          setInput("");
+          textareaRef.current?.focus();
+          return;
+        }
+      }
+
+      // Provider switching: cmd+1 through cmd+9
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
+        const index = Number(event.key) - 1;
+        if (index >= 0 && index < settings.providers.length) {
+          event.preventDefault();
+          setActiveProvider(settings.providers[index].id);
+        }
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [settings.providers]);
+  }, [settings.providers, runningAction]);
 
   async function handleAction(actionType: ActionType) {
-    await runAction(actionType, input, activeProvider);
+    const trimmedInput = input.trim();
+    if (!trimmedInput || !activeProvider) {
+      return;
+    }
+    await runAction(actionType, trimmedInput, activeProvider);
   }
 
   async function handleRerun(result: AssistantResult) {
     const originalProvider =
       settings.providers.find((provider) => provider.id === result.providerId) ?? activeProvider;
+    if (!result.input.trim() || !originalProvider) {
+      return;
+    }
     await runAction(result.action, result.input, originalProvider);
   }
 
@@ -73,36 +128,7 @@ function App() {
     provider: ProviderConfig | undefined,
   ) {
     const action = promptActions.find((item) => item.type === actionType);
-    const trimmedInput = sourceInput.trim();
-    if (!action) {
-      return;
-    }
-
-    if (!provider) {
-      addResult({
-        action: action.type,
-        actionLabel: action.label,
-        providerId: "",
-        providerName: "No provider",
-        input: trimmedInput,
-        output: "",
-        durationMs: 0,
-        error: "请先新增并配置一个 provider。",
-      });
-      return;
-    }
-
-    if (!trimmedInput) {
-      addResult({
-        action: action.type,
-        actionLabel: action.label,
-        providerId: provider.id,
-        providerName: provider.name,
-        input: "",
-        output: "",
-        durationMs: 0,
-        error: "请输入文本后再运行操作。",
-      });
+    if (!action || !provider) {
       return;
     }
 
@@ -110,28 +136,61 @@ function App() {
     setRunningAction(action.type);
     setCopiedResultId(null);
 
-    try {
-      const output = await runPrompt(provider, action.buildPrompt(trimmedInput));
-      addResult({
+    const resultId = crypto.randomUUID();
+    setResults((current) => [
+      {
+        id: resultId,
         action: action.type,
         actionLabel: action.label,
         providerId: provider.id,
         providerName: provider.name,
-        input: trimmedInput,
-        output,
-        durationMs: Math.round(performance.now() - startedAt),
-      });
-    } catch (error) {
-      addResult({
-        action: action.type,
-        actionLabel: action.label,
-        providerId: provider.id,
-        providerName: provider.name,
-        input: trimmedInput,
+        input: sourceInput,
         output: "",
-        durationMs: Math.round(performance.now() - startedAt),
-        error: error instanceof Error ? error.message : "请求失败。",
-      });
+        createdAt: new Date().toISOString(),
+        durationMs: 0,
+        status: "loading",
+      },
+      ...current,
+    ]);
+    setExpandedResultIds(new Set([resultId]));
+
+    try {
+      const output = await runPrompt(
+        provider,
+        action.buildPrompt(sourceInput),
+        (chunk) => {
+          setResults((current) =>
+            current.map((r) =>
+              r.id === resultId ? { ...r, output: r.output + chunk } : r,
+            ),
+          );
+        },
+      );
+      setResults((current) =>
+        current.map((r) =>
+          r.id === resultId
+            ? {
+                ...r,
+                output,
+                durationMs: Math.round(performance.now() - startedAt),
+                status: "done" as const,
+              }
+            : r,
+        ),
+      );
+    } catch (error) {
+      setResults((current) =>
+        current.map((r) =>
+          r.id === resultId
+            ? {
+                ...r,
+                durationMs: Math.round(performance.now() - startedAt),
+                error: error instanceof Error ? error.message : "请求失败。",
+                status: "error" as const,
+              }
+            : r,
+        ),
+      );
     } finally {
       setRunningAction(null);
     }
@@ -144,6 +203,7 @@ function App() {
         ...result,
         id,
         createdAt: new Date().toISOString(),
+        status: "done",
       },
       ...current,
     ]);
@@ -255,6 +315,10 @@ function App() {
     });
   }
 
+  function deleteResult(resultId: string) {
+    setResults((current) => current.filter((r) => r.id !== resultId));
+  }
+
   async function copyResultOutput(result: AssistantResult) {
     try {
       await navigator.clipboard.writeText(result.output || result.error || "");
@@ -270,6 +334,7 @@ function App() {
         <section className="input-panel" aria-label="Input and actions">
           <div className="composer-shell">
             <textarea
+              ref={textareaRef}
               className="main-input"
               value={input}
               onChange={(event) => setInput(event.target.value)}
@@ -281,29 +346,52 @@ function App() {
               <span>
                 {activeProvider?.name || "No provider"} · {activeProvider?.model || "Model not set"}
               </span>
-              <button
-                className="icon-button"
-                type="button"
-                onClick={() => setIsProviderPanelOpen(true)}
-                title="Provider settings"
-                aria-label="Provider settings"
-              >
-                <SettingsIcon size={15} strokeWidth={2} />
-              </button>
+              <div className="composer-meta-actions">
+                {input.length > 0 ? (
+                  <button
+                    className="icon-button"
+                    type="button"
+                    onClick={() => {
+                      setInput("");
+                      textareaRef.current?.focus();
+                    }}
+                    title={navigator.platform.includes("Mac") ? "清空输入 (⌘0)" : "清空输入 (Ctrl+0)"}
+                    aria-label="清空输入"
+                  >
+                    <X size={14} strokeWidth={2} />
+                  </button>
+                ) : null}
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={() => setIsProviderPanelOpen(true)}
+                  title="Provider settings"
+                  aria-label="Provider settings"
+                >
+                  <SettingsIcon size={15} strokeWidth={2} />
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="action-grid" aria-label="Prompt actions">
-            {promptActions.map((action) => (
+          <div
+            ref={actionGridRef}
+            className="action-grid"
+            aria-label="Prompt actions"
+          >
+            {promptActions.map((action, index) => (
               <button
                 className="button action-button"
                 key={action.type}
                 type="button"
                 onClick={() => void handleAction(action.type)}
                 disabled={runningAction !== null}
-                title={action.description}
+                title={`${action.description} (${navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}${index + 1})`}
               >
-                <span>{runningAction === action.type ? "Running" : action.shortLabel}</span>
+                <span className="action-label">
+                  {runningAction === action.type ? "Running" : action.shortLabel}
+                  <kbd className="action-kbd">{navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}{index + 1}</kbd>
+                </span>
                 <small>{action.description}</small>
               </button>
             ))}
@@ -329,6 +417,7 @@ function App() {
                   onCopy={() => void copyResultOutput(result)}
                   onRerun={() => void handleRerun(result)}
                   onToggle={() => toggleResult(result.id)}
+                  onDelete={() => deleteResult(result.id)}
                 />
               ))
             )}
@@ -532,6 +621,7 @@ function ResultCard({
   onCopy,
   onRerun,
   onToggle,
+  onDelete,
 }: {
   copied: boolean;
   expanded: boolean;
@@ -540,6 +630,7 @@ function ResultCard({
   onCopy: () => void;
   onRerun: () => void;
   onToggle: () => void;
+  onDelete: () => void;
 }) {
   const created = new Intl.DateTimeFormat(undefined, {
     hour: "2-digit",
@@ -547,14 +638,18 @@ function ResultCard({
     second: "2-digit",
   }).format(new Date(result.createdAt));
 
+  const isLoading = result.status === "loading";
+
   return (
     <article
       className={
-        result.error
+        result.status === "error"
           ? "result-card result-card--error"
-          : expanded
-            ? "result-card"
-            : "result-card result-card--collapsed"
+          : isLoading
+            ? "result-card result-card--loading"
+            : expanded
+              ? "result-card"
+              : "result-card result-card--collapsed"
       }
     >
       <header className="result-card-header">
@@ -572,23 +667,34 @@ function ResultCard({
           )}
         </button>
         <button className="result-title-button" type="button" onClick={onToggle}>
-          <span>{result.actionLabel}</span>
+          <span>{isLoading ? "加载中..." : result.actionLabel}</span>
           <small>
-            {result.providerName} · {created} · {result.durationMs}ms
+            {result.providerName} · {created}{isLoading ? "" : ` · ${result.durationMs}ms`}
           </small>
         </button>
-        <div className="result-actions">
-          <button
-            className="icon-button result-icon-button"
-            type="button"
-            onClick={onRerun}
-            disabled={running}
-            title="Re-run"
-            aria-label="Re-run"
-          >
-            <RotateCcw size={15} strokeWidth={2.2} />
-          </button>
-        </div>
+        {!isLoading && (
+          <div className="result-actions">
+            <button
+              className="icon-button result-icon-button"
+              type="button"
+              onClick={onRerun}
+              disabled={running}
+              title="Re-run"
+              aria-label="Re-run"
+            >
+              <RotateCcw size={15} strokeWidth={2.2} />
+            </button>
+            <button
+              className="icon-button result-icon-button"
+              type="button"
+              onClick={onDelete}
+              title="Delete"
+              aria-label="Delete"
+            >
+              <Trash2 size={15} strokeWidth={2.2} />
+            </button>
+          </div>
+        )}
       </header>
 
       {expanded ? (
@@ -600,7 +706,11 @@ function ResultCard({
             </blockquote>
           ) : null}
 
-          {result.error ? (
+          {result.status === "loading" ? (
+            <div className="result-loading">
+              <span className="loading-dots">正在输入</span>
+            </div>
+          ) : result.error ? (
             <div className="result-error">{result.error}</div>
           ) : (
             <div className="markdown-block">

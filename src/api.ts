@@ -9,6 +9,7 @@ type ChatRequestResult = {
   endpoint: string;
   payload: OpenAiResponse | null;
   response: Response;
+  content?: string;
 };
 
 export function validateProviderConfig(provider: ProviderConfig): void {
@@ -26,20 +27,28 @@ export function validateProviderConfig(provider: ProviderConfig): void {
   }
 }
 
-export async function runPrompt(provider: ProviderConfig, prompt: string): Promise<string> {
+export async function runPrompt(
+  provider: ProviderConfig,
+  prompt: string,
+  onChunk?: (chunk: string) => void,
+): Promise<string> {
   validateProviderConfig(provider);
 
-  const result = await requestChatCompletion(provider, [
-    {
-      role: "system",
-      content:
-        "你是一个简洁、准确的 AI 英语助手。始终用中文解释和组织回复；英文原句、改写句和示例可以保留英文。只输出结构化 Markdown，优先给可直接复制使用的结果。",
-    },
-    {
-      role: "user",
-      content: prompt,
-    },
-  ]);
+  const result = await requestChatCompletion(
+    provider,
+    [
+      {
+        role: "system",
+        content:
+          "You are a concise, accurate AI English assistant. Always explain and organize responses in Chinese; English original sentences, rewrites, and examples may remain in English. Output structured Markdown only, preferring results that can be copied and used directly.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    onChunk,
+  );
 
   if (!result.response.ok) {
     throw new Error(
@@ -48,6 +57,10 @@ export async function runPrompt(provider: ProviderConfig, prompt: string): Promi
         `Provider request failed (${result.response.status}) at ${result.endpoint}.`,
       ),
     );
+  }
+
+  if (onChunk) {
+    return result.content ?? "";
   }
 
   return extractOpenAiContent(result.payload);
@@ -59,11 +72,11 @@ export async function testProvider(provider: ProviderConfig): Promise<string> {
   const result = await requestChatCompletion(provider, [
     {
       role: "system",
-      content: "你只需要用中文回复“连接正常”。",
+      content: "You only need to reply in Chinese: \u201c\u8fde\u63a5\u6b63\u5e38\u201d.",
     },
     {
       role: "user",
-      content: "请确认连接是否正常。",
+      content: "\u8bf7\u786e\u8ba4\u8fde\u63a5\u662f\u5426\u6b63\u5e38\u3002",
     },
   ]);
 
@@ -82,12 +95,19 @@ export async function testProvider(provider: ProviderConfig): Promise<string> {
 async function requestChatCompletion(
   provider: ProviderConfig,
   messages: ChatMessage[],
+  onChunk?: (chunk: string) => void,
 ): Promise<ChatRequestResult> {
   const endpoints = buildChatEndpoints(provider.baseUrl);
   let lastResult: ChatRequestResult | null = null;
 
   for (const endpoint of endpoints) {
-    const response = await postChatCompletion(endpoint, provider, messages);
+    const response = await postChatCompletion(endpoint, provider, messages, onChunk);
+
+    if (onChunk && response.ok) {
+      const content = await readStream(response, onChunk);
+      return { endpoint, payload: null, response, content };
+    }
+
     const payload = await readJson<OpenAiResponse>(response);
     const result = { endpoint, payload, response };
 
@@ -101,10 +121,54 @@ async function requestChatCompletion(
   return lastResult as ChatRequestResult;
 }
 
+async function readStream(response: Response, onChunk: (chunk: string) => void): Promise<string> {
+  if (!response.body) {
+    throw new Error("Response body is null");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let content = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split("\n");
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") {
+            return content;
+          }
+          try {
+            const parsed = JSON.parse(data) as OpenAiResponse;
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (typeof delta === "string") {
+              content += delta;
+              onChunk(delta);
+            }
+          } catch {
+            // Skip malformed JSON lines
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return content;
+}
+
 async function postChatCompletion(
   endpoint: string,
   provider: ProviderConfig,
   messages: ChatMessage[],
+  onChunk?: (chunk: string) => void,
 ): Promise<Response> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -115,14 +179,20 @@ async function postChatCompletion(
     headers.Authorization = `Bearer ${apiKey}`;
   }
 
+  const body: Record<string, unknown> = {
+    model: provider.model.trim(),
+    messages,
+    temperature: 0.2,
+  };
+
+  if (onChunk) {
+    body.stream = true;
+  }
+
   return fetch(endpoint, {
     method: "POST",
     headers,
-    body: JSON.stringify({
-      model: provider.model.trim(),
-      messages,
-      temperature: 0.2,
-    }),
+    body: JSON.stringify(body),
   });
 }
 
@@ -153,6 +223,9 @@ function extractOpenAiContent(payload: OpenAiResponse | null): string {
 type OpenAiResponse = {
   choices?: Array<{
     message?: {
+      content?: string;
+    };
+    delta?: {
       content?: string;
     };
   }>;

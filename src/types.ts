@@ -25,4 +25,5 @@ export type AssistantResult = {
   createdAt: string;
   durationMs: number;
   error?: string;
+  status: "loading" | "done" | "error";
 };

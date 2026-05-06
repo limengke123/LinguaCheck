@@ -59,7 +59,7 @@ button:disabled {
 }
 
 button:active:not(:disabled) {
-  transform: scale(0.97);
+  opacity: 0.8;
 }
 
 button:focus-visible,
@@ -223,6 +223,12 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
+.composer-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .action-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -251,6 +257,9 @@ textarea:focus-visible {
 }
 
 .action-button span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   overflow: hidden;
   width: 100%;
   color: var(--blue);
@@ -259,6 +268,21 @@ textarea:focus-visible {
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.action-kbd {
+  display: inline-flex;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(0, 102, 204, 0.1);
+  color: var(--blue);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  justify-content: center;
+  text-align: center;
 }
 
 .action-button small {
@@ -274,6 +298,8 @@ textarea:focus-visible {
 
 .output-panel {
   padding: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .output-footer {
@@ -288,7 +314,7 @@ textarea:focus-visible {
   flex: 1;
   flex-direction: column;
   gap: 10px;
-  overflow: auto;
+  overflow: visible;
   padding-right: 2px;
 }
 
@@ -376,6 +402,10 @@ textarea:focus-visible {
   gap: 2px;
   padding: 3px 2px;
   text-align: left;
+  user-select: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
 }
 
 .result-title-button span {
@@ -595,6 +625,29 @@ textarea:focus-visible {
 .inline-error {
   margin: 0;
   font-size: 13px;
+}
+
+.result-card--loading {
+  border-color: rgba(0, 102, 204, 0.28);
+  background: #f7fbff;
+}
+
+.result-loading {
+  padding: 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.loading-dots::after {
+  content: "";
+  animation: loading-dots 1.4s infinite;
+}
+
+@keyframes loading-dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
 }
 
 .modal-backdrop {
