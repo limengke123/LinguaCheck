@@ -92,11 +92,11 @@ textarea:focus-visible {
   gap: 12px;
 }
 
-.output-toolbar {
+.output-footer {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 64px;
 }
 
 .button {
@@ -276,7 +276,7 @@ textarea:focus-visible {
   padding: 0;
 }
 
-.output-toolbar {
+.output-footer {
   justify-content: space-between;
   color: var(--muted);
   font-size: 14px;
@@ -772,6 +772,7 @@ textarea:focus-visible {
     padding: 8px;
   }
 
+  .output-footer,
   .provider-default-row,
   .provider-panel-header {
     align-items: stretch;

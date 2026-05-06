@@ -312,18 +312,6 @@ function App() {
         </section>
 
         <section className="output-panel" aria-label="Output cards">
-          <div className="output-toolbar">
-            <span>{results.length} results</span>
-            <button
-              className="button button-ghost button-compact"
-              type="button"
-              disabled={results.length === 0}
-              onClick={() => setResults([])}
-            >
-              Clear
-            </button>
-          </div>
-
           <div className="result-list">
             {results.length === 0 ? (
               <div className="empty-state">
@@ -344,6 +332,18 @@ function App() {
                 />
               ))
             )}
+          </div>
+
+          <div className="output-footer">
+            <span>{results.length} results</span>
+            <button
+              className="button button-ghost button-compact"
+              type="button"
+              disabled={results.length === 0}
+              onClick={() => setResults([])}
+            >
+              Clear
+            </button>
           </div>
         </section>
       </main>
