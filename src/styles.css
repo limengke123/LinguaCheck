@@ -178,23 +178,6 @@ textarea:focus-visible {
   color: #8b8b92;
 }
 
-.composer-meta {
-  position: absolute;
-  right: 14px;
-  bottom: 12px;
-  left: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 10px;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--pill);
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .icon-button {
   display: inline-grid;
   width: 32px;
@@ -212,19 +195,6 @@ textarea:focus-visible {
   border-color: rgba(99, 102, 241, 0.3);
   background: var(--accent-soft);
   color: var(--accent);
-}
-
-.composer-meta span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.composer-meta-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .selection-bar {
@@ -356,10 +326,41 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 8px 2px 2px;
+  gap: 12px;
+  padding: 6px 2px 2px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-provider {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.footer-sep {
+  color: var(--line);
+}
+
+.footer-count {
+  color: var(--muted);
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-settings {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
 }
 
 .empty-state,

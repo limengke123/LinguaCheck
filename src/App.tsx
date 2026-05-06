@@ -551,37 +551,6 @@ function App() {
               placeholder="粘贴英文、中文或混合文本。可以是一句话、一段邮件、一段技术讨论或你想润色的表达。"
               spellCheck
             />
-            <div className="composer-meta">
-              <span>{input.length} chars</span>
-              <span>
-                {activeProvider?.name || "No provider"} · {activeProvider?.model || "Model not set"}
-              </span>
-              <div className="composer-meta-actions">
-                {input.length > 0 ? (
-                  <button
-                    className="icon-button"
-                    type="button"
-                    onClick={() => {
-                      setInput("");
-                      textareaRef.current?.focus();
-                    }}
-                    title={navigator.platform.includes("Mac") ? "清空输入 (⌘0)" : "清空输入 (Ctrl+0)"}
-                    aria-label="清空输入"
-                  >
-                    <X size={14} strokeWidth={2} />
-                  </button>
-                ) : null}
-                <button
-                  className="icon-button"
-                  type="button"
-                  onClick={() => setIsProviderPanelOpen(true)}
-                  title="Provider settings"
-                  aria-label="Provider settings"
-                >
-                  <SettingsIcon size={15} strokeWidth={2} />
-                </button>
-              </div>
-            </div>
           </div>
 
           <div
@@ -634,15 +603,32 @@ function App() {
           </div>
 
           <div className="output-footer">
-            <span>{results.length} result{results.length !== 1 ? "s" : ""}</span>
-            <button
-              className="button button-ghost button-compact"
-              type="button"
-              disabled={results.length === 0}
-              onClick={clearAllResults}
-            >
-              Clear
-            </button>
+            <div className="footer-left">
+              <span className="footer-provider">
+                {activeProvider?.name || "No provider"}
+              </span>
+              <span className="footer-sep">·</span>
+              <span className="footer-count">{results.length} result{results.length !== 1 ? "s" : ""}</span>
+            </div>
+            <div className="footer-actions">
+              <button
+                className="icon-button footer-settings"
+                type="button"
+                onClick={() => setIsProviderPanelOpen(true)}
+                title="Provider settings"
+                aria-label="Provider settings"
+              >
+                <SettingsIcon size={15} strokeWidth={2} />
+              </button>
+              <button
+                className="button button-ghost button-compact"
+                type="button"
+                disabled={results.length === 0}
+                onClick={clearAllResults}
+              >
+                Clear
+              </button>
+            </div>
           </div>
         </section>
       </main>
