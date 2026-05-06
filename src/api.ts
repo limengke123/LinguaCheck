@@ -2,7 +2,7 @@ import type { Provider, Settings } from "./types";
 
 export function validateProviderConfig(provider: Provider, settings: Settings): void {
   if (provider === "openai") {
-    if (!settings.openaiApiKey.trim()) {
+    if (!settings.openaiApiKey.trim() && !isLocalBaseUrl(settings.openaiBaseUrl)) {
       throw new Error("OpenAI API key is required.");
     }
     if (!settings.openaiBaseUrl.trim()) {
@@ -38,12 +38,57 @@ export async function runPrompt(
 
 async function runOpenAiCompatible(settings: Settings, prompt: string): Promise<string> {
   const baseUrl = trimTrailingSlash(settings.openaiBaseUrl);
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+  const firstEndpoint = `${baseUrl}/chat/completions`;
+  const response = await postChatCompletion(firstEndpoint, settings, prompt);
+  const payload = await readJson<OpenAiResponse>(response);
+
+  if (
+    response.status === 404 &&
+    !baseUrl.endsWith("/v1") &&
+    !baseUrl.endsWith("/v1/")
+  ) {
+    const fallbackEndpoint = `${baseUrl}/v1/chat/completions`;
+    const fallbackResponse = await postChatCompletion(fallbackEndpoint, settings, prompt);
+    const fallbackPayload = await readJson<OpenAiResponse>(fallbackResponse);
+
+    if (!fallbackResponse.ok) {
+      throw new Error(
+        extractError(
+          fallbackPayload,
+          `OpenAI-compatible request failed (${fallbackResponse.status}) at ${fallbackEndpoint}.`,
+        ),
+      );
+    }
+
+    return extractOpenAiContent(fallbackPayload);
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      extractError(payload, `OpenAI-compatible request failed (${response.status}) at ${firstEndpoint}.`),
+    );
+  }
+
+  return extractOpenAiContent(payload);
+}
+
+async function postChatCompletion(
+  endpoint: string,
+  settings: Settings,
+  prompt: string,
+): Promise<Response> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const apiKey = settings.openaiApiKey.trim();
+
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
+  return fetch(endpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${settings.openaiApiKey.trim()}`,
-    },
+    headers,
     body: JSON.stringify({
       model: settings.openaiModel.trim(),
       messages: [
@@ -60,13 +105,9 @@ async function runOpenAiCompatible(settings: Settings, prompt: string): Promise<
       temperature: 0.2,
     }),
   });
+}
 
-  const payload = await readJson<OpenAiResponse>(response);
-
-  if (!response.ok) {
-    throw new Error(extractError(payload, `OpenAI-compatible request failed (${response.status}).`));
-  }
-
+function extractOpenAiContent(payload: OpenAiResponse | null): string {
   const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) {
     throw new Error("OpenAI-compatible response did not include message content.");
@@ -158,4 +199,13 @@ function extractError(payload: unknown, fallback: string): string {
 
 function trimTrailingSlash(value: string): string {
   return value.trim().replace(/\/+$/, "");
+}
+
+function isLocalBaseUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return ["localhost", "127.0.0.1", "::1", "0.0.0.0"].includes(url.hostname);
+  } catch {
+    return false;
+  }
 }

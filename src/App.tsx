@@ -11,7 +11,7 @@ import {
 import type { ActionType, AssistantResult, Provider, Settings } from "./types";
 
 const providerLabels: Record<Provider, string> = {
-  openai: "OpenAI",
+  openai: "OpenAI-compatible",
   ollama: "Ollama",
 };
 
@@ -221,7 +221,7 @@ function App() {
                 aria-checked={provider === "openai"}
                 onClick={() => setProvider("openai")}
               >
-                OpenAI
+                OpenAI-compatible
                 <kbd>⌘1</kbd>
               </button>
               <button
@@ -238,26 +238,26 @@ function App() {
 
             <div className="settings-grid">
               <label>
-                <span>OpenAI API Key</span>
+                <span>OpenAI-compatible API Key</span>
                 <input
                   type="password"
                   value={settings.openaiApiKey}
                   onChange={(event) => updateSetting("openaiApiKey", event.target.value)}
-                  placeholder="sk-..."
+                  placeholder="Optional for local servers"
                   autoComplete="off"
                 />
               </label>
               <label>
-                <span>OpenAI Base URL</span>
+                <span>OpenAI-compatible Base URL</span>
                 <input
                   type="url"
                   value={settings.openaiBaseUrl}
                   onChange={(event) => updateSetting("openaiBaseUrl", event.target.value)}
-                  placeholder="https://api.openai.com/v1"
+                  placeholder="https://api.openai.com/v1 or http://localhost:8099/v1"
                 />
               </label>
               <label>
-                <span>OpenAI Model</span>
+                <span>OpenAI-compatible Model</span>
                 <input
                   value={settings.openaiModel}
                   onChange={(event) => updateSetting("openaiModel", event.target.value)}
