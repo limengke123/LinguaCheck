@@ -1,4 +1,8 @@
-import type { ProviderConfig, Settings } from "./types";
+import type { AssistantResult, ProviderConfig, Settings } from "./types";
+
+const DB_NAME = "linguacheck";
+const DB_VERSION = 1;
+const RESULTS_STORE = "results";
 
 export const SETTINGS_KEY = "linguacheck.settings";
 
@@ -149,4 +153,75 @@ function cloneSettings(settings: Settings): Settings {
 
 function readString(value: unknown): string {
   return typeof value === "string" ? value : "";
+}
+
+// IndexedDB for results persistence
+let _db: IDBDatabase | null = null;
+
+function openDB(): Promise<IDBDatabase> {
+  if (_db) return Promise.resolve(_db);
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => {
+      _db = req.result;
+      resolve(_db);
+    };
+    req.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(RESULTS_STORE)) {
+        const store = db.createObjectStore(RESULTS_STORE, { keyPath: "id" });
+        store.createIndex("createdAt", "createdAt", { unique: false });
+      }
+    };
+  });
+}
+
+export async function loadResults(): Promise<AssistantResult[]> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(RESULTS_STORE, "readonly");
+    const store = tx.objectStore(RESULTS_STORE);
+    const req = store.getAll();
+    req.onsuccess = () => {
+      const results = (req.result as AssistantResult[]).sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      resolve(results);
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function saveResult(result: AssistantResult): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(RESULTS_STORE, "readwrite");
+    const store = tx.objectStore(RESULTS_STORE);
+    const req = store.put(result);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function deleteResult(id: string): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(RESULTS_STORE, "readwrite");
+    const store = tx.objectStore(RESULTS_STORE);
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function clearResults(): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(RESULTS_STORE, "readwrite");
+    const store = tx.objectStore(RESULTS_STORE);
+    const req = store.clear();
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
 }

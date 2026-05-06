@@ -12,7 +12,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { runPrompt, testProvider } from "./api";
 import { promptActions } from "./prompts";
-import { createProvider, loadSettings, saveSettings } from "./storage";
+import { createProvider, loadResults, loadSettings, saveResult, saveSettings, deleteResult as dbDeleteResult, clearResults as dbClearResults } from "./storage";
 import type { ActionType, AssistantResult, ProviderConfig, Settings } from "./types";
 
 type ConnectionCheck = {
@@ -33,6 +33,7 @@ function App() {
   const outputRef = useRef<HTMLDivElement>(null);
   const actionGridRef = useRef<HTMLDivElement>(null);
   const [selection, setSelection] = useState<{ text: string; source: "input" | "output"; x: number; y: number } | null>(null);
+  const resultsLoadedRef = useRef(false);
 
   const activeProvider = useMemo(
     () =>
@@ -49,6 +50,22 @@ function App() {
   // Auto-focus on mount
   useEffect(() => {
     textareaRef.current?.focus();
+  }, []);
+
+  // Load results from IndexedDB on mount
+  useEffect(() => {
+    loadResults().then((loaded) => {
+      if (loaded.length > 0) {
+        setResults(loaded);
+        // Expand the most recent result
+        if (loaded[0]) {
+          setExpandedResultIds(new Set([loaded[0].id]));
+        }
+      }
+      resultsLoadedRef.current = true;
+    }).catch(() => {
+      resultsLoadedRef.current = true;
+    });
   }, []);
 
   // Selection detection for input and output - show popover on mouseup
@@ -239,13 +256,17 @@ function App() {
     setCopiedResultId(null);
 
     // Update existing card to loading state
+    const loadingResult: AssistantResult = {
+      ...result,
+      output: "",
+      error: undefined,
+      durationMs: 0,
+      status: "loading",
+    };
     setResults((current) =>
-      current.map((r) =>
-        r.id === result.id
-          ? { ...r, output: "", error: undefined, durationMs: 0, status: "loading" as const }
-          : r,
-      ),
+      current.map((r) => (r.id === result.id ? loadingResult : r)),
     );
+    void saveResult(loadingResult);
 
     try {
       const output = await runPrompt(
@@ -259,31 +280,27 @@ function App() {
           );
         },
       );
+      const finalResult: AssistantResult = {
+        ...loadingResult,
+        output,
+        durationMs: Math.round(performance.now() - startedAt),
+        status: "done",
+      };
       setResults((current) =>
-        current.map((r) =>
-          r.id === result.id
-            ? {
-                ...r,
-                output,
-                durationMs: Math.round(performance.now() - startedAt),
-                status: "done" as const,
-              }
-            : r,
-        ),
+        current.map((r) => (r.id === result.id ? finalResult : r)),
       );
+      void saveResult(finalResult);
     } catch (error) {
+      const errorResult: AssistantResult = {
+        ...loadingResult,
+        durationMs: Math.round(performance.now() - startedAt),
+        error: error instanceof Error ? error.message : "请求失败。",
+        status: "error",
+      };
       setResults((current) =>
-        current.map((r) =>
-          r.id === result.id
-            ? {
-                ...r,
-                durationMs: Math.round(performance.now() - startedAt),
-                error: error instanceof Error ? error.message : "请求失败。",
-                status: "error" as const,
-              }
-            : r,
-        ),
+        current.map((r) => (r.id === result.id ? errorResult : r)),
       );
+      void saveResult(errorResult);
     } finally {
       setRunningAction(null);
     }
@@ -304,22 +321,21 @@ function App() {
     setCopiedResultId(null);
 
     const resultId = crypto.randomUUID();
-    setResults((current) => [
-      {
-        id: resultId,
-        action: action.type,
-        actionLabel: action.label,
-        providerId: provider.id,
-        providerName: provider.name,
-        input: sourceInput,
-        output: "",
-        createdAt: new Date().toISOString(),
-        durationMs: 0,
-        status: "loading",
-      },
-      ...current,
-    ]);
+    const newResult: AssistantResult = {
+      id: resultId,
+      action: action.type,
+      actionLabel: action.label,
+      providerId: provider.id,
+      providerName: provider.name,
+      input: sourceInput,
+      output: "",
+      createdAt: new Date().toISOString(),
+      durationMs: 0,
+      status: "loading",
+    };
+    setResults((current) => [newResult, ...current]);
     setExpandedResultIds(new Set([resultId]));
+    void saveResult(newResult);
 
     try {
       const output = await runPrompt(
@@ -333,31 +349,27 @@ function App() {
           );
         },
       );
+      const finalResult: AssistantResult = {
+        ...newResult,
+        output,
+        durationMs: Math.round(performance.now() - startedAt),
+        status: "done",
+      };
       setResults((current) =>
-        current.map((r) =>
-          r.id === resultId
-            ? {
-                ...r,
-                output,
-                durationMs: Math.round(performance.now() - startedAt),
-                status: "done" as const,
-              }
-            : r,
-        ),
+        current.map((r) => (r.id === resultId ? finalResult : r)),
       );
+      void saveResult(finalResult);
     } catch (error) {
+      const errorResult: AssistantResult = {
+        ...newResult,
+        durationMs: Math.round(performance.now() - startedAt),
+        error: error instanceof Error ? error.message : "请求失败。",
+        status: "error",
+      };
       setResults((current) =>
-        current.map((r) =>
-          r.id === resultId
-            ? {
-                ...r,
-                durationMs: Math.round(performance.now() - startedAt),
-                error: error instanceof Error ? error.message : "请求失败。",
-                status: "error" as const,
-              }
-            : r,
-        ),
+        current.map((r) => (r.id === resultId ? errorResult : r)),
       );
+      void saveResult(errorResult);
     } finally {
       setRunningAction(null);
     }
@@ -365,16 +377,15 @@ function App() {
 
   function addResult(result: Omit<AssistantResult, "id" | "createdAt">) {
     const id = crypto.randomUUID();
-    setResults((current) => [
-      {
-        ...result,
-        id,
-        createdAt: new Date().toISOString(),
-        status: "done",
-      },
-      ...current,
-    ]);
+    const newResult: AssistantResult = {
+      ...result,
+      id,
+      createdAt: new Date().toISOString(),
+      status: "done",
+    };
+    setResults((current) => [newResult, ...current]);
     setExpandedResultIds(new Set([id]));
+    void saveResult(newResult);
   }
 
   function setActiveProvider(providerId: string) {
@@ -484,6 +495,12 @@ function App() {
 
   function deleteResult(resultId: string) {
     setResults((current) => current.filter((r) => r.id !== resultId));
+    void dbDeleteResult(resultId);
+  }
+
+  function clearAllResults() {
+    setResults([]);
+    void dbClearResults();
   }
 
   async function copyResultOutput(result: AssistantResult) {
@@ -622,7 +639,7 @@ function App() {
               className="button button-ghost button-compact"
               type="button"
               disabled={results.length === 0}
-              onClick={() => setResults([])}
+              onClick={clearAllResults}
             >
               Clear
             </button>
