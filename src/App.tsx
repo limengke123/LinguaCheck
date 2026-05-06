@@ -1,13 +1,17 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import {
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  RotateCcw,
+  Settings as SettingsIcon,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { runPrompt, testProvider } from "./api";
-import { buildObsidianMarkdown } from "./markdown";
 import { promptActions } from "./prompts";
 import { createProvider, loadSettings, saveSettings } from "./storage";
 import type { ActionType, AssistantResult, ProviderConfig, Settings } from "./types";
-
-type CopyState = "idle" | "copied" | "failed";
 
 type ConnectionCheck = {
   status: "checking" | "ok" | "error";
@@ -19,7 +23,8 @@ function App() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [results, setResults] = useState<AssistantResult[]>([]);
   const [runningAction, setRunningAction] = useState<ActionType | null>(null);
-  const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [expandedResultIds, setExpandedResultIds] = useState<Set<string>>(() => new Set());
+  const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   const [isProviderPanelOpen, setIsProviderPanelOpen] = useState(false);
   const [connectionChecks, setConnectionChecks] = useState<Record<string, ConnectionCheck>>({});
 
@@ -29,11 +34,6 @@ function App() {
       settings.providers.find((provider) => provider.id === settings.defaultProviderId) ??
       settings.providers[0],
     [settings],
-  );
-
-  const latestSuccessfulResult = useMemo(
-    () => results.find((result) => !result.error),
-    [results],
   );
 
   useEffect(() => {
@@ -58,13 +58,27 @@ function App() {
   }, [settings.providers]);
 
   async function handleAction(actionType: ActionType) {
+    await runAction(actionType, input, activeProvider);
+  }
+
+  async function handleRerun(result: AssistantResult) {
+    const originalProvider =
+      settings.providers.find((provider) => provider.id === result.providerId) ?? activeProvider;
+    await runAction(result.action, result.input, originalProvider);
+  }
+
+  async function runAction(
+    actionType: ActionType,
+    sourceInput: string,
+    provider: ProviderConfig | undefined,
+  ) {
     const action = promptActions.find((item) => item.type === actionType);
-    const trimmedInput = input.trim();
+    const trimmedInput = sourceInput.trim();
     if (!action) {
       return;
     }
 
-    if (!activeProvider) {
+    if (!provider) {
       addResult({
         action: action.type,
         actionLabel: action.label,
@@ -82,8 +96,8 @@ function App() {
       addResult({
         action: action.type,
         actionLabel: action.label,
-        providerId: activeProvider.id,
-        providerName: activeProvider.name,
+        providerId: provider.id,
+        providerName: provider.name,
         input: "",
         output: "",
         durationMs: 0,
@@ -94,15 +108,15 @@ function App() {
 
     const startedAt = performance.now();
     setRunningAction(action.type);
-    setCopyState("idle");
+    setCopiedResultId(null);
 
     try {
-      const output = await runPrompt(activeProvider, action.buildPrompt(trimmedInput));
+      const output = await runPrompt(provider, action.buildPrompt(trimmedInput));
       addResult({
         action: action.type,
         actionLabel: action.label,
-        providerId: activeProvider.id,
-        providerName: activeProvider.name,
+        providerId: provider.id,
+        providerName: provider.name,
         input: trimmedInput,
         output,
         durationMs: Math.round(performance.now() - startedAt),
@@ -111,8 +125,8 @@ function App() {
       addResult({
         action: action.type,
         actionLabel: action.label,
-        providerId: activeProvider.id,
-        providerName: activeProvider.name,
+        providerId: provider.id,
+        providerName: provider.name,
         input: trimmedInput,
         output: "",
         durationMs: Math.round(performance.now() - startedAt),
@@ -124,14 +138,16 @@ function App() {
   }
 
   function addResult(result: Omit<AssistantResult, "id" | "createdAt">) {
+    const id = crypto.randomUUID();
     setResults((current) => [
       {
         ...result,
-        id: crypto.randomUUID(),
+        id,
         createdAt: new Date().toISOString(),
       },
       ...current,
     ]);
+    setExpandedResultIds(new Set([id]));
   }
 
   function setActiveProvider(providerId: string) {
@@ -227,16 +243,24 @@ function App() {
     });
   }
 
-  async function copyLatestMarkdown() {
-    if (!latestSuccessfulResult) {
-      return;
-    }
+  function toggleResult(resultId: string) {
+    setExpandedResultIds((current) => {
+      const next = new Set(current);
+      if (next.has(resultId)) {
+        next.delete(resultId);
+      } else {
+        next.add(resultId);
+      }
+      return next;
+    });
+  }
 
+  async function copyResultOutput(result: AssistantResult) {
     try {
-      await navigator.clipboard.writeText(buildObsidianMarkdown(latestSuccessfulResult));
-      setCopyState("copied");
+      await navigator.clipboard.writeText(result.output || result.error || "");
+      setCopiedResultId(result.id);
     } catch {
-      setCopyState("failed");
+      setCopiedResultId(null);
     }
   }
 
@@ -244,39 +268,6 @@ function App() {
     <div className="app-shell">
       <main className="workspace">
         <section className="input-panel" aria-label="Input and actions">
-          <div className="utility-bar">
-            <select
-              className="provider-select"
-              value={activeProvider?.id ?? ""}
-              onChange={(event) => setActiveProvider(event.target.value)}
-              aria-label="Active provider"
-            >
-              {settings.providers.map((provider, index) => (
-                <option key={provider.id} value={provider.id}>
-                  {index + 1}. {provider.name}
-                  {provider.id === settings.defaultProviderId ? " · default" : ""}
-                </option>
-              ))}
-            </select>
-
-            <button
-              className="button button-ghost"
-              type="button"
-              onClick={() => setIsProviderPanelOpen(true)}
-            >
-              Providers
-            </button>
-
-            <button
-              className="button button-primary"
-              type="button"
-              onClick={copyLatestMarkdown}
-              disabled={!latestSuccessfulResult}
-            >
-              {copyState === "copied" ? "Copied" : "Copy Markdown"}
-            </button>
-          </div>
-
           <div className="composer-shell">
             <textarea
               className="main-input"
@@ -287,7 +278,18 @@ function App() {
             />
             <div className="composer-meta">
               <span>{input.length} chars</span>
-              <span>{activeProvider?.model || "Model not set"}</span>
+              <span>
+                {activeProvider?.name || "No provider"} · {activeProvider?.model || "Model not set"}
+              </span>
+              <button
+                className="icon-button"
+                type="button"
+                onClick={() => setIsProviderPanelOpen(true)}
+                title="Provider settings"
+                aria-label="Provider settings"
+              >
+                <SettingsIcon size={15} strokeWidth={2} />
+              </button>
             </div>
           </div>
 
@@ -307,9 +309,6 @@ function App() {
             ))}
           </div>
 
-          {copyState === "failed" ? (
-            <p className="inline-error">Clipboard access failed.</p>
-          ) : null}
         </section>
 
         <section className="output-panel" aria-label="Output cards">
@@ -332,7 +331,18 @@ function App() {
                 <p>输入文本并选择一个动作，结果会以 Markdown 卡片保留在这里。</p>
               </div>
             ) : (
-              results.map((result) => <ResultCard key={result.id} result={result} />)
+              results.map((result) => (
+                <ResultCard
+                  copied={copiedResultId === result.id}
+                  expanded={expandedResultIds.has(result.id)}
+                  key={result.id}
+                  result={result}
+                  running={runningAction !== null}
+                  onCopy={() => void copyResultOutput(result)}
+                  onRerun={() => void handleRerun(result)}
+                  onToggle={() => toggleResult(result.id)}
+                />
+              ))
             )}
           </div>
         </section>
@@ -514,7 +524,23 @@ function ProviderPanel({
   );
 }
 
-function ResultCard({ result }: { result: AssistantResult }) {
+function ResultCard({
+  copied,
+  expanded,
+  result,
+  running,
+  onCopy,
+  onRerun,
+  onToggle,
+}: {
+  copied: boolean;
+  expanded: boolean;
+  result: AssistantResult;
+  running: boolean;
+  onCopy: () => void;
+  onRerun: () => void;
+  onToggle: () => void;
+}) {
   const created = new Intl.DateTimeFormat(undefined, {
     hour: "2-digit",
     minute: "2-digit",
@@ -522,30 +548,79 @@ function ResultCard({ result }: { result: AssistantResult }) {
   }).format(new Date(result.createdAt));
 
   return (
-    <article className={result.error ? "result-card result-card--error" : "result-card"}>
+    <article
+      className={
+        result.error
+          ? "result-card result-card--error"
+          : expanded
+            ? "result-card"
+            : "result-card result-card--collapsed"
+      }
+    >
       <header className="result-card-header">
-        <div>
-          <h3>{result.actionLabel}</h3>
-          <p>
+        <button
+          className="collapse-button"
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          aria-label={expanded ? "Collapse result" : "Expand result"}
+        >
+          {expanded ? (
+            <ChevronDown size={17} strokeWidth={2.25} />
+          ) : (
+            <ChevronRight size={17} strokeWidth={2.25} />
+          )}
+        </button>
+        <button className="result-title-button" type="button" onClick={onToggle}>
+          <span>{result.actionLabel}</span>
+          <small>
             {result.providerName} · {created} · {result.durationMs}ms
-          </p>
+          </small>
+        </button>
+        <div className="result-actions">
+          <button
+            className="icon-button result-icon-button"
+            type="button"
+            onClick={onRerun}
+            disabled={running}
+            title="Re-run"
+            aria-label="Re-run"
+          >
+            <RotateCcw size={15} strokeWidth={2.2} />
+          </button>
         </div>
       </header>
 
-      {result.input ? (
-        <blockquote className="input-quote">
-          <span>Input</span>
-          {result.input}
-        </blockquote>
-      ) : null}
+      {expanded ? (
+        <>
+          {result.input ? (
+            <blockquote className="input-quote">
+              <span>Input</span>
+              {result.input}
+            </blockquote>
+          ) : null}
 
-      {result.error ? (
-        <div className="result-error">{result.error}</div>
-      ) : (
-        <div className="markdown-body">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.output}</ReactMarkdown>
-        </div>
-      )}
+          {result.error ? (
+            <div className="result-error">{result.error}</div>
+          ) : (
+            <div className="markdown-block">
+              <button
+                className="icon-button copy-block-button"
+                type="button"
+                onClick={onCopy}
+                title="Copy output"
+                aria-label="Copy output"
+              >
+                <Copy size={15} strokeWidth={2.2} />
+              </button>
+              <div className="markdown-body">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.output}</ReactMarkdown>
+              </div>
+              {copied ? <span className="copy-state">Copied</span> : null}
+            </div>
+          )}
+        </>
+      ) : null}
     </article>
   );
 }

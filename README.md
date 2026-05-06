@@ -12,8 +12,9 @@ It runs entirely in the browser. There is no backend, database, login system, or
 - Add, edit, delete, select, and test providers in the provider panel
 - Default provider setting
 - Result cards rendered as Markdown
+- New result cards open automatically; older result cards collapse automatically
+- Result cards support hover-to-copy output and re-run
 - API keys, base URLs, models, and provider settings stored in `localStorage`
-- Copy latest successful result as Obsidian-friendly Markdown
 
 ## Requirements
 
@@ -69,7 +70,7 @@ npm run preview
 
 ## Provider Configuration
 
-Click `Providers` in the app to manage OpenAI-compatible providers.
+Click the small settings icon in the input footer to manage OpenAI-compatible providers.
 
 Each provider has:
 
@@ -114,32 +115,11 @@ Because this app is pure frontend, requests are sent directly from the browser.
 - API keys are stored in browser `localStorage`, as required by the MVP.
 - GitHub Pages is HTTPS. Browser security may block calls from the deployed page to plain HTTP local endpoints such as `http://localhost:8099`; for local models, local development mode is usually the most reliable path.
 
-## Obsidian Export
+## Markdown Copy
 
-After a successful result, click `Copy Markdown`.
+Hover over a result body and click the copy icon to copy that result's Markdown.
 
-The copied format is:
-
-```md
-## Sentence
-...
-
-## Meaning
-...
-
-## Correction
-...
-
-## Notes
-...
-
-## Alternatives
-...
-
-#english #writing
-```
-
-Paste it into any Obsidian note.
+The copied content is the raw Markdown returned by the model, so it can be pasted into Obsidian or any Markdown editor.
 
 ## GitHub Pages
 
