@@ -59,7 +59,7 @@ function App() {
           event.preventDefault();
           navigator.clipboard.readText().then((text) => {
             if (text) {
-              setInput((current) => current + text);
+              setInput(text);
               textareaRef.current?.focus();
             }
           }).catch(() => {
