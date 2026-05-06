@@ -30,7 +30,9 @@ function App() {
   const [isProviderPanelOpen, setIsProviderPanelOpen] = useState(false);
   const [connectionChecks, setConnectionChecks] = useState<Record<string, ConnectionCheck>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
   const actionGridRef = useRef<HTMLDivElement>(null);
+  const [selection, setSelection] = useState<{ text: string; source: "input" | "output"; x: number; y: number } | null>(null);
 
   const activeProvider = useMemo(
     () =>
@@ -47,6 +49,113 @@ function App() {
   // Auto-focus on mount
   useEffect(() => {
     textareaRef.current?.focus();
+  }, []);
+
+  // Selection detection for input and output - show popover on mouseup
+  useEffect(() => {
+    function handleSelectionChange() {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) {
+        setSelection(null);
+        return;
+      }
+      const text = sel.toString().trim();
+      if (!text) {
+        setSelection(null);
+        return;
+      }
+
+      const anchor = sel.anchorNode;
+      if (!anchor) {
+        setSelection(null);
+        return;
+      }
+
+      // Check if selection is within textarea
+      const textarea = textareaRef.current;
+      if (textarea && textarea.contains(anchor)) {
+        setSelection({ text, source: "input", x: 0, y: 0 });
+        return;
+      }
+
+      // Check if selection is within output panel
+      const outputEl = document.querySelector(".output-panel");
+      if (outputEl && outputEl.contains(anchor)) {
+        setSelection({ text, source: "output", x: 0, y: 0 });
+        return;
+      }
+
+      setSelection(null);
+    }
+
+    function handleMouseUp() {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) {
+        setSelection(null);
+        return;
+      }
+      const text = sel.toString().trim();
+      if (!text) {
+        setSelection(null);
+        return;
+      }
+
+      const anchor = sel.anchorNode;
+      if (!anchor) {
+        setSelection(null);
+        return;
+      }
+
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+
+      // Check if selection is within textarea
+      const textarea = textareaRef.current;
+      if (textarea && textarea.contains(anchor)) {
+        setSelection({ text, source: "input", x: rect.left + rect.width / 2, y: rect.top });
+        return;
+      }
+
+      // Check if selection is within output panel
+      const outputEl = document.querySelector(".output-panel");
+      if (outputEl && outputEl.contains(anchor)) {
+        setSelection({ text, source: "output", x: rect.left + rect.width / 2, y: rect.top });
+        return;
+      }
+
+      setSelection(null);
+    }
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  // Clear selection when clicking outside input/output
+  useEffect(() => {
+    function handleClick(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      const isInInput = textareaRef.current?.contains(target);
+      const isInOutput = document.querySelector(".output-panel")?.contains(target);
+      const isInSelectionBar = document.querySelector(".selection-bar")?.contains(target);
+      if (!isInInput && !isInOutput && !isInSelectionBar) {
+        setSelection(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Clear selection when window loses focus
+  useEffect(() => {
+    function handleBlur() {
+      setSelection(null);
+    }
+    window.addEventListener("blur", handleBlur);
+    return () => window.removeEventListener("blur", handleBlur);
   }, []);
 
   // Global keyboard shortcuts
@@ -105,8 +214,8 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [settings.providers, runningAction]);
 
-  async function handleAction(actionType: ActionType) {
-    const trimmedInput = input.trim();
+  async function handleAction(actionType: ActionType, selectionText?: string) {
+    const trimmedInput = (selectionText ?? input).trim();
     if (!trimmedInput || !activeProvider) {
       return;
     }
@@ -119,7 +228,65 @@ function App() {
     if (!result.input.trim() || !originalProvider) {
       return;
     }
-    await runAction(result.action, result.input, originalProvider);
+
+    const action = promptActions.find((item) => item.type === result.action);
+    if (!action) {
+      return;
+    }
+
+    const startedAt = performance.now();
+    setRunningAction(result.action);
+    setCopiedResultId(null);
+
+    // Update existing card to loading state
+    setResults((current) =>
+      current.map((r) =>
+        r.id === result.id
+          ? { ...r, output: "", error: undefined, durationMs: 0, status: "loading" as const }
+          : r,
+      ),
+    );
+
+    try {
+      const output = await runPrompt(
+        originalProvider,
+        action.buildPrompt(result.input),
+        (chunk) => {
+          setResults((current) =>
+            current.map((r) =>
+              r.id === result.id ? { ...r, output: r.output + chunk } : r,
+            ),
+          );
+        },
+      );
+      setResults((current) =>
+        current.map((r) =>
+          r.id === result.id
+            ? {
+                ...r,
+                output,
+                durationMs: Math.round(performance.now() - startedAt),
+                status: "done" as const,
+              }
+            : r,
+        ),
+      );
+    } catch (error) {
+      setResults((current) =>
+        current.map((r) =>
+          r.id === result.id
+            ? {
+                ...r,
+                durationMs: Math.round(performance.now() - startedAt),
+                error: error instanceof Error ? error.message : "请求失败。",
+                status: "error" as const,
+              }
+            : r,
+        ),
+      );
+    } finally {
+      setRunningAction(null);
+    }
   }
 
   async function runAction(
@@ -330,6 +497,32 @@ function App() {
 
   return (
     <div className="app-shell">
+      {selection && selection.x !== 0 ? (
+        <div
+          className="selection-bar"
+          style={{
+            position: "fixed",
+            left: selection.x,
+            top: selection.y - 8,
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <div className="selection-actions">
+            {promptActions.map((action) => (
+              <button
+                className="button button-ghost button-compact"
+                key={action.type}
+                type="button"
+                onClick={() => void handleAction(action.type, selection.text)}
+                disabled={runningAction !== null}
+                title={action.description}
+              >
+                {action.shortLabel}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <main className="workspace">
         <section className="input-panel" aria-label="Input and actions">
           <div className="composer-shell">
@@ -424,7 +617,7 @@ function App() {
           </div>
 
           <div className="output-footer">
-            <span>{results.length} results</span>
+            <span>{results.length} result{results.length !== 1 ? "s" : ""}</span>
             <button
               className="button button-ghost button-compact"
               type="button"
@@ -632,6 +825,9 @@ function ResultCard({
   onToggle: () => void;
   onDelete: () => void;
 }) {
+  const [inputCollapsed, setInputCollapsed] = useState(true);
+  const INPUT_PREVIEW_LENGTH = 200;
+
   const created = new Intl.DateTimeFormat(undefined, {
     hour: "2-digit",
     minute: "2-digit",
@@ -639,6 +835,7 @@ function ResultCard({
   }).format(new Date(result.createdAt));
 
   const isLoading = result.status === "loading";
+  const inputLong = result.input.length > INPUT_PREVIEW_LENGTH;
 
   return (
     <article
@@ -667,9 +864,11 @@ function ResultCard({
           )}
         </button>
         <button className="result-title-button" type="button" onClick={onToggle}>
-          <span>{isLoading ? "加载中..." : result.actionLabel}</span>
+          <span className="result-input-preview">
+            {isLoading ? "加载中..." : result.input || "(empty)"}
+          </span>
           <small>
-            {result.providerName} · {created}{isLoading ? "" : ` · ${result.durationMs}ms`}
+            {result.actionLabel} · {created}{isLoading ? "" : ` · ${result.durationMs}ms`}
           </small>
         </button>
         {!isLoading && (
@@ -701,8 +900,21 @@ function ResultCard({
         <>
           {result.input ? (
             <blockquote className="input-quote">
-              <span>Input</span>
-              {result.input}
+              <button
+                className="input-quote-header"
+                type="button"
+                onClick={() => setInputCollapsed((c) => !c)}
+              >
+                <span>Input</span>
+                {inputLong ? (
+                  <span className="input-quote-toggle">
+                    {inputCollapsed ? "Show more" : "Show less"}
+                  </span>
+                ) : null}
+              </button>
+              <p className={`input-quote-text ${inputCollapsed && inputLong ? "input-quote-text--collapsed" : ""}`}>
+                {result.input}
+              </p>
             </blockquote>
           ) : null}
 
