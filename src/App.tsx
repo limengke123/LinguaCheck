@@ -5,6 +5,7 @@ import type { ActionType } from "./types";
 import { InputPanel } from "./components/InputPanel";
 import { ResultPanel } from "./components/ResultPanel";
 import { ConfigPanel } from "./components/ConfigPanel";
+import { X } from "lucide-react";
 import { useThemeMode } from "./hooks/useThemeMode";
 import { useProviderSettings } from "./hooks/useProviderSettings";
 import { useResultsWorkflow } from "./hooks/useResultsWorkflow";
@@ -13,6 +14,10 @@ import { useGlobalShortcuts } from "./hooks/useGlobalShortcuts";
 
 function App() {
   const [input, setInput] = useState("");
+  const [previewMode, setPreviewMode] = useState(false);
+  const [previewInputCollapsed, setPreviewInputCollapsed] = useState(false);
+  const [showQuickInput, setShowQuickInput] = useState(false);
+  const [quickInputValue, setQuickInputValue] = useState("");
   type ConfigTab = 'provider' | 'prompts' | 'settings';
   const [activeConfigTab, setActiveConfigTab] = useState<ConfigTab | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -58,8 +63,10 @@ function App() {
   }, [input]);
 
   useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
+    if (!previewMode || !previewInputCollapsed) {
+      textareaRef.current?.focus();
+    }
+  }, [previewMode, previewInputCollapsed]);
 
   useGlobalShortcuts({
     promptActions,
@@ -70,7 +77,19 @@ function App() {
     onClearInput: () => setInput(""),
     onSetActiveProvider: setActiveProvider,
     focusTextarea: () => textareaRef.current?.focus(),
+    previewMode,
+    onOpenQuickInput: () => {
+      setQuickInputValue(input);
+      setShowQuickInput(true);
+    },
   });
+
+  useEffect(() => {
+    if (!previewMode) {
+      setPreviewInputCollapsed(false);
+      setShowQuickInput(false);
+    }
+  }, [previewMode]);
 
   async function handleAction(actionType: ActionType, selectionText?: string) {
     const trimmedInput = (selectionText ?? input).trim();
@@ -82,6 +101,9 @@ function App() {
 
   function handleRestore(input: string) {
     setInput(input);
+    if (previewMode) {
+      setPreviewInputCollapsed(false);
+    }
     textareaRef.current?.focus();
   }
 
@@ -113,17 +135,30 @@ function App() {
           </div>
         </div>
       ) : null}
-      <main className="workspace">
-        <InputPanel
-          input={input}
-          inputStats={inputStats}
-          runningAction={runningAction}
-          promptActions={promptActions}
-          onInputChange={setInput}
-          onClearInput={() => setInput("")}
-          onRunAction={(actionType) => void handleAction(actionType)}
-          textareaRef={textareaRef}
-        />
+      <main className={`workspace ${previewMode && previewInputCollapsed ? "workspace--preview-focused" : ""}`}>
+        {previewMode && previewInputCollapsed ? (
+          <section className="input-collapsed-banner" aria-label="Input collapsed">
+            <span>Preview 模式已聚焦输出，按 ⌘P 可快速输入</span>
+            <button
+              className="button button-ghost button-compact"
+              type="button"
+              onClick={() => setPreviewInputCollapsed(false)}
+            >
+              展开输入区
+            </button>
+          </section>
+        ) : (
+          <InputPanel
+            input={input}
+            inputStats={inputStats}
+            runningAction={runningAction}
+            promptActions={promptActions}
+            onInputChange={setInput}
+            onClearInput={() => setInput("")}
+            onRunAction={(actionType) => void handleAction(actionType)}
+            textareaRef={textareaRef}
+          />
+        )}
 
         <ResultPanel
           results={results}
@@ -145,6 +180,30 @@ function App() {
           onExportMarkdown={exportAllResultsAsMarkdown}
           onOpenConfig={() => setActiveConfigTab("provider")}
           onClearAll={clearAllResults}
+          previewMode={previewMode}
+          onTogglePreviewMode={() => {
+            setPreviewMode((current) => {
+              const next = !current;
+              if (next) {
+                setPreviewInputCollapsed(true);
+              }
+              return next;
+            });
+          }}
+          previewInputCollapsed={previewInputCollapsed}
+          onTogglePreviewInput={() => {
+            setPreviewInputCollapsed((current) => {
+              const next = !current;
+              if (!next) {
+                requestAnimationFrame(() => textareaRef.current?.focus());
+              }
+              return next;
+            });
+          }}
+          onOpenQuickInput={() => {
+            setQuickInputValue(input);
+            setShowQuickInput(true);
+          }}
         />
       </main>
 
@@ -173,6 +232,52 @@ function App() {
             savePromptActions(actions);
           }}
         />
+      ) : null}
+
+      {showQuickInput ? (
+        <div className="modal-backdrop" onClick={(event) => event.target === event.currentTarget && setShowQuickInput(false)}>
+          <section className="quick-input-modal" role="dialog" aria-modal="true" aria-label="Quick input">
+            <header className="quick-input-header">
+              <h3>快速输入（Preview）</h3>
+              <button className="icon-button" type="button" onClick={() => setShowQuickInput(false)} aria-label="Close quick input">
+                <X size={15} strokeWidth={2.4} />
+              </button>
+            </header>
+            <textarea
+              className="quick-input-textarea"
+              value={quickInputValue}
+              onChange={(event) => setQuickInputValue(event.target.value)}
+              placeholder="输入临时文本，回车保存到主输入框（Shift+Enter 换行）"
+              autoFocus
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  setShowQuickInput(false);
+                }
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  setInput(quickInputValue);
+                  setShowQuickInput(false);
+                }
+              }}
+            />
+            <div className="quick-input-actions">
+              <button className="button button-ghost" type="button" onClick={() => setShowQuickInput(false)}>
+                取消
+              </button>
+              <button
+                className="button button-primary"
+                type="button"
+                onClick={() => {
+                  setInput(quickInputValue);
+                  setShowQuickInput(false);
+                }}
+              >
+                保存到输入区
+              </button>
+            </div>
+          </section>
+        </div>
       ) : null}
     </div>
   );

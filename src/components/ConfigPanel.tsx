@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeSelector } from "./ThemeSelector";
+import { CustomSelect } from "./CustomSelect";
 import { createPromptAction, defaultPromptActions } from "../storage";
 import type { PromptAction } from "../prompts";
 import type { ProviderConfig, Settings } from "../types";
@@ -184,6 +185,14 @@ export function ConfigPanel({
   }
 
   const previewLength = 80;
+  const providerOptions = settings.providers.map((provider) => ({
+    value: provider.id,
+    label: provider.name,
+  }));
+  const templateOptions = SYSTEM_PROMPT_TEMPLATES.map((tmpl, index) => ({
+    value: String(index),
+    label: tmpl.label,
+  }));
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onTabChange(null)}>
@@ -215,13 +224,11 @@ export function ConfigPanel({
               <div className="provider-default-row">
                 <label>
                   <span>Default provider</span>
-                  <select value={settings.defaultProviderId} onChange={(event) => onSetDefaultProvider(event.target.value)}>
-                    {settings.providers.map((provider) => (
-                      <option key={provider.id} value={provider.id}>
-                        {provider.name}
-                      </option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    value={settings.defaultProviderId}
+                    options={providerOptions}
+                    onChange={onSetDefaultProvider}
+                  />
                 </label>
                 <button className="button button-ghost" type="button" onClick={onAddProvider}>
                   Add Provider
@@ -371,11 +378,13 @@ export function ConfigPanel({
                             </label>
                             <label className="prompt-config-field">
                               <span>Quick Template</span>
-                              <select
+                              <CustomSelect
                                 className="prompt-template-select"
                                 value=""
-                                onChange={(e) => {
-                                  const tmpl = SYSTEM_PROMPT_TEMPLATES[Number(e.target.value)];
+                                placeholder="Choose template..."
+                                options={templateOptions}
+                                onChange={(value) => {
+                                  const tmpl = SYSTEM_PROMPT_TEMPLATES[Number(value)];
                                   if (tmpl) {
                                     setEditState((s) =>
                                       s.mode === "edit"
@@ -388,16 +397,8 @@ export function ConfigPanel({
                                         : s,
                                     );
                                   }
-                                  e.target.value = "";
                                 }}
-                              >
-                                <option value="">Choose template...</option>
-                                {SYSTEM_PROMPT_TEMPLATES.map((tmpl, i) => (
-                                  <option key={tmpl.label} value={i}>
-                                    {tmpl.label}
-                                  </option>
-                                ))}
-                              </select>
+                              />
                             </label>
                           </div>
 

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ActionType, AssistantResult, ProviderConfig } from "../types";
+import { CustomSelect } from "./CustomSelect";
 
 type ResultPanelProps = {
   results: AssistantResult[];
@@ -38,6 +39,11 @@ type ResultPanelProps = {
   onExportMarkdown: () => void;
   onOpenConfig: () => void;
   onClearAll: () => void;
+  previewMode: boolean;
+  previewInputCollapsed: boolean;
+  onTogglePreviewMode: () => void;
+  onTogglePreviewInput: () => void;
+  onOpenQuickInput: () => void;
 };
 
 export function ResultPanel({
@@ -60,7 +66,19 @@ export function ResultPanel({
   onExportMarkdown,
   onOpenConfig,
   onClearAll,
+  previewMode,
+  previewInputCollapsed,
+  onTogglePreviewMode,
+  onTogglePreviewInput,
+  onOpenQuickInput,
 }: ResultPanelProps) {
+  const statusOptions = [
+    { value: "all", label: "全部" },
+    { value: "done", label: "成功" },
+    { value: "loading", label: "进行中" },
+    { value: "error", label: "错误" },
+  ];
+
   return (
     <section className="output-panel" aria-label="Output cards">
       <div className="result-toolbar">
@@ -72,18 +90,14 @@ export function ResultPanel({
             placeholder="搜索输入/输出/错误..."
           />
         </label>
-        <select
+        <CustomSelect
           className="status-filter"
           value={resultStatusFilter}
-          onChange={(event) =>
-            onStatusFilterChange(event.target.value as "all" | "done" | "error" | "loading")
+          options={statusOptions}
+          onChange={(value) =>
+            onStatusFilterChange(value as "all" | "done" | "error" | "loading")
           }
-        >
-          <option value="all">全部</option>
-          <option value="done">成功</option>
-          <option value="loading">进行中</option>
-          <option value="error">错误</option>
-        </select>
+        />
       </div>
 
       <div className="result-list">
@@ -120,6 +134,33 @@ export function ResultPanel({
           </span>
         </div>
         <div className="footer-actions">
+          <button
+            className={`button button-ghost button-compact ${previewMode ? "button--active" : ""}`}
+            type="button"
+            onClick={onTogglePreviewMode}
+            title="Preview mode"
+          >
+            Preview
+          </button>
+          {previewMode ? (
+            <>
+              <button
+                className="button button-ghost button-compact"
+                type="button"
+                onClick={onTogglePreviewInput}
+              >
+                {previewInputCollapsed ? "展开 Input" : "折叠 Input"}
+              </button>
+              <button
+                className="button button-ghost button-compact"
+                type="button"
+                onClick={onOpenQuickInput}
+                title="Command + P"
+              >
+                快速输入
+              </button>
+            </>
+          ) : null}
           <button
             className="button button-ghost button-compact"
             type="button"

@@ -6,22 +6,26 @@ type UseGlobalShortcutsArgs = {
   promptActions: PromptAction[];
   providers: ProviderConfig[];
   runningAction: ActionType | null;
+  previewMode: boolean;
   onRunAction: (type: ActionType) => void;
   onSetInputFromClipboard: (text: string) => void;
   onClearInput: () => void;
   onSetActiveProvider: (providerId: string) => void;
   focusTextarea: () => void;
+  onOpenQuickInput: () => void;
 };
 
 export function useGlobalShortcuts({
   promptActions,
   providers,
   runningAction,
+  previewMode,
   onRunAction,
   onSetInputFromClipboard,
   onClearInput,
   onSetActiveProvider,
   focusTextarea,
+  onOpenQuickInput,
 }: UseGlobalShortcutsArgs) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -41,6 +45,11 @@ export function useGlobalShortcuts({
       }
 
       if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
+        if (event.key.toLowerCase() === "p" && previewMode) {
+          event.preventDefault();
+          onOpenQuickInput();
+          return;
+        }
         const actionIndex = Number(event.key) - 1;
         if (actionIndex >= 0 && actionIndex < promptActions.length) {
           if (runningAction === null) {
@@ -72,10 +81,12 @@ export function useGlobalShortcuts({
     promptActions,
     providers,
     runningAction,
+    previewMode,
     onRunAction,
     onSetInputFromClipboard,
     onClearInput,
     onSetActiveProvider,
     focusTextarea,
+    onOpenQuickInput,
   ]);
 }
