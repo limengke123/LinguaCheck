@@ -1,3 +1,11 @@
+import {
+  Compass,
+  Globe,
+  Languages,
+  SearchCheck,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 import type { ActionType, PromptAction } from "./types";
 import { loadPromptActions } from "./storage";
 
@@ -30,6 +38,7 @@ export const defaultPromptActions: PromptAction[] = [
 文本：
 """
 `,
+    iconName: "Compass",
   },
   {
     id: "enToZh",
@@ -47,6 +56,7 @@ export const defaultPromptActions: PromptAction[] = [
 文本：
 """
 `,
+    iconName: "Globe",
   },
   {
     id: "zhToEn",
@@ -66,6 +76,7 @@ export const defaultPromptActions: PromptAction[] = [
 文本：
 """
 `,
+    iconName: "Languages",
   },
   {
     id: "polish",
@@ -85,6 +96,7 @@ export const defaultPromptActions: PromptAction[] = [
 文本：
 """
 `,
+    iconName: "Sparkles",
   },
   {
     id: "check",
@@ -114,6 +126,7 @@ Yes 或 No，并用中文补一句判断。
 文本：
 """
 `,
+    iconName: "SearchCheck",
   },
 ];
 

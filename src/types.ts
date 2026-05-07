@@ -1,3 +1,6 @@
+import type { LucideIcon } from "lucide-react";
+export type { LucideIcon };
+
 export type ActionType =
   | "explain"
   | "enToZh"
@@ -17,7 +20,8 @@ export type PromptAction = {
   shortLabel: string;
   description: string;
   systemPrompt: string; // the prefix that wraps user input
-  iconName?: string; // lucide-react icon name (optional)
+  icon?: LucideIcon; // lucide-react icon component
+  iconName?: string; // lucide-react icon name string (for serialization)
 };
 
 export type ProviderConfig = {
@@ -47,4 +51,5 @@ export type AssistantResult = {
   error?: string;
   status: "loading" | "done" | "error";
   pinned?: boolean;
+  iconName?: string;
 };

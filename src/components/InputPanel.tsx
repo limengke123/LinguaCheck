@@ -1,6 +1,7 @@
 import { Eraser, Sparkles } from "lucide-react";
 import type { ActionType } from "../types";
 import type { PromptAction } from "../prompts";
+import * as LucideIcons from "lucide-react";
 
 type InputPanelProps = {
   input: string;
@@ -12,6 +13,11 @@ type InputPanelProps = {
   onRunAction: (actionType: ActionType) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 };
+
+function getIcon(iconName?: string): React.ElementType | null {
+  if (!iconName) return null;
+  return (LucideIcons as unknown as Record<string, React.ElementType>)[iconName] ?? null;
+}
 
 export function InputPanel({
   input,
@@ -62,25 +68,29 @@ export function InputPanel({
 
       <span className="action-grid-title">Actions</span>
       <div className="action-grid" aria-label="Prompt actions">
-        {promptActions.map((action, index) => (
-          <button
-            className="button action-button"
-            key={action.type}
-            type="button"
-            onClick={() => onRunAction(action.type)}
-            disabled={runningAction !== null}
-            title={`${action.description} (${hotkeyPrefix}${index + 1})`}
-          >
-            <span className="action-label">
-              {runningAction === action.type ? "Running" : action.shortLabel}
-              <kbd className="action-kbd">
-                {hotkeyPrefix}
-                {index + 1}
-              </kbd>
-            </span>
-            <small>{action.description}</small>
-          </button>
-        ))}
+        {promptActions.map((action, index) => {
+            const Icon = getIcon(action.iconName);
+            return (
+              <button
+                className="button action-button"
+                key={action.type}
+                type="button"
+                onClick={() => onRunAction(action.type)}
+                disabled={runningAction !== null}
+                title={`${action.description} (${hotkeyPrefix}${index + 1})`}
+              >
+                {Icon && <Icon size={14} strokeWidth={2.4} />}
+                <span className="action-label">
+                  {runningAction === action.type ? "Running" : action.shortLabel}
+                  <kbd className="action-kbd">
+                    {hotkeyPrefix}
+                    {index + 1}
+                  </kbd>
+                </span>
+                <small>{action.description}</small>
+              </button>
+            );
+          })}
       </div>
     </section>
   );

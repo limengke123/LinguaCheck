@@ -1,3 +1,4 @@
+import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -16,6 +17,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ActionType, AssistantResult, ProviderConfig } from "../types";
 import { CustomSelect } from "./CustomSelect";
@@ -299,6 +301,11 @@ function ResultCard({
           )}
         </button>
         <button className="result-title-button" type="button" onClick={onToggle}>
+          {(() => {
+            const iconName = result.iconName;
+            const Icon = iconName ? (LucideIcons as unknown as Record<string, React.ElementType>)[iconName] : null;
+            return Icon ? <Icon size={13} strokeWidth={2.2} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> : null;
+          })()}
           <span className="result-input-preview">{isLoading ? "加载中..." : result.input || "(empty)"}</span>
           <small>
             {result.actionLabel} · {created}

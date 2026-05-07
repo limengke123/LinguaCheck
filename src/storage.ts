@@ -1,6 +1,22 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  Compass,
+  Globe,
+  Languages,
+  SearchCheck,
+  Sparkles,
+} from "lucide-react";
 import type { AssistantResult, ProviderConfig, PromptAction, Settings } from "./types";
 export { defaultPromptActions } from "./prompts";
 import { defaultPromptActions } from "./prompts";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  Compass,
+  Globe,
+  Languages,
+  SearchCheck,
+  Sparkles,
+};
 
 const DB_NAME = "linguacheck";
 const DB_VERSION = 1;
@@ -54,15 +70,25 @@ export function loadPromptActions(): PromptAction[] {
   const merged: PromptAction[] = [];
   for (const defaultPrompt of defaultPromptActions) {
     if (savedMap.has(defaultPrompt.id)) {
-      merged.push(savedMap.get(defaultPrompt.id)!);
+      const savedPrompt = savedMap.get(defaultPrompt.id)!;
+      merged.push({
+        ...savedPrompt,
+        icon: savedPrompt.iconName ? ICON_MAP[savedPrompt.iconName] : defaultPrompt.icon,
+      });
     } else {
-      merged.push(defaultPrompt);
+      merged.push({
+        ...defaultPrompt,
+        icon: defaultPrompt.iconName ? ICON_MAP[defaultPrompt.iconName] : undefined,
+      });
     }
   }
   // Add any custom prompts not in defaults
   for (const savedPrompt of saved) {
     if (!defaultMap.has(savedPrompt.id)) {
-      merged.push(savedPrompt);
+      merged.push({
+        ...savedPrompt,
+        icon: savedPrompt.iconName ? ICON_MAP[savedPrompt.iconName] : undefined,
+      });
     }
   }
   return merged;

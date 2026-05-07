@@ -66,6 +66,7 @@ export function useResultsWorkflow(
       createdAt: new Date().toISOString(),
       durationMs: 0,
       status: "loading",
+      iconName: action.iconName,
     };
     setResults((current) => [newResult, ...current]);
     setExpandedResultIds(new Set([resultId]));
