@@ -37,10 +37,12 @@ export function useResultsWorkflow(
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   const [resultKeyword, setResultKeyword] = useState("");
   const [resultTypeFilter, setResultTypeFilter] = useState<ResultTypeFilter>("all");
+  const [resultsLoading, setResultsLoading] = useState(true);
 
   useEffect(() => {
     loadResults()
       .then((loaded) => {
+        setResultsLoading(false);
         if (loaded.length > 0) {
           setResults(loaded);
           const savedExpanded = loadExpandedIds();
@@ -51,7 +53,7 @@ export function useResultsWorkflow(
           }
         }
       })
-      .catch(() => undefined);
+      .catch(() => setResultsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -273,6 +275,7 @@ export function useResultsWorkflow(
     results,
     filteredResults,
     runningAction,
+    resultsLoading,
     expandedResultIds,
     copiedResultId,
     resultKeyword,

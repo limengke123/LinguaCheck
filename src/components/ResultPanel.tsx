@@ -29,6 +29,7 @@ type ResultPanelProps = {
   copiedResultId: string | null;
   expandedResultIds: Set<string>;
   runningAction: ActionType | null;
+  resultsLoading: boolean;
   activeProvider: ProviderConfig | undefined;
   resultKeyword: string;
   resultTypeFilter: "all" | ActionType;
@@ -55,6 +56,7 @@ export function ResultPanel({
   copiedResultId,
   expandedResultIds,
   runningAction,
+  resultsLoading,
   activeProvider,
   resultKeyword,
   resultTypeFilter,
@@ -108,7 +110,7 @@ export function ResultPanel({
       </div>
 
       <div className="result-list">
-        {filteredResults.length === 0 ? (
+        {resultsLoading ? null : filteredResults.length === 0 ? (
           <div className="empty-state">
             <h2>等待输出</h2>
             <p>输入文本并选择一个动作，结果会以 Markdown 卡片保留在这里。你也可以通过上方搜索和状态筛选快速定位历史记录。</p>

@@ -39,6 +39,7 @@ function App() {
     results,
     filteredResults,
     runningAction,
+    resultsLoading,
     expandedResultIds,
     copiedResultId,
     resultKeyword,
@@ -178,6 +179,7 @@ function App() {
           copiedResultId={copiedResultId}
           expandedResultIds={expandedResultIds}
           runningAction={runningAction}
+          resultsLoading={resultsLoading}
           activeProvider={activeProvider}
           resultKeyword={resultKeyword}
           resultTypeFilter={resultTypeFilter}
