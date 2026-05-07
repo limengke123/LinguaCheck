@@ -43,8 +43,8 @@ function App() {
     copiedResultId,
     resultKeyword,
     setResultKeyword,
-    resultStatusFilter,
-    setResultStatusFilter,
+    resultTypeFilter,
+    setResultTypeFilter,
     runAction,
     rerunResult,
     toggleResult,
@@ -176,9 +176,9 @@ function App() {
           runningAction={runningAction}
           activeProvider={activeProvider}
           resultKeyword={resultKeyword}
-          resultStatusFilter={resultStatusFilter}
+          resultTypeFilter={resultTypeFilter}
           onKeywordChange={setResultKeyword}
-          onStatusFilterChange={setResultStatusFilter}
+          onTypeFilterChange={setResultTypeFilter}
           onCopyResult={(result) => void copyResultOutput(result)}
           onRerunResult={(result, newInput) => void rerunResult(result, newInput)}
           onRestoreInput={handleRestore}
@@ -194,16 +194,6 @@ function App() {
               const next = !current;
               if (next) {
                 setPreviewInputCollapsed(true);
-              }
-              return next;
-            });
-          }}
-          previewInputCollapsed={previewInputCollapsed}
-          onTogglePreviewInput={() => {
-            setPreviewInputCollapsed((current) => {
-              const next = !current;
-              if (!next) {
-                requestAnimationFrame(() => textareaRef.current?.focus());
               }
               return next;
             });

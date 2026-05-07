@@ -5,7 +5,7 @@ import { clearResults as dbClearResults, deleteResult as dbDeleteResult, loadRes
 import type { PromptAction } from "../prompts";
 import type { ActionType, AssistantResult, ProviderConfig } from "../types";
 
-type ResultStatusFilter = "all" | "done" | "error" | "loading";
+type ResultTypeFilter = "all" | ActionType;
 
 export function useResultsWorkflow(
   promptActions: PromptAction[],
@@ -17,7 +17,7 @@ export function useResultsWorkflow(
   const [expandedResultIds, setExpandedResultIds] = useState<Set<string>>(() => new Set());
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   const [resultKeyword, setResultKeyword] = useState("");
-  const [resultStatusFilter, setResultStatusFilter] = useState<ResultStatusFilter>("all");
+  const [resultTypeFilter, setResultTypeFilter] = useState<ResultTypeFilter>("all");
 
   useEffect(() => {
     loadResults()
@@ -41,12 +41,11 @@ export function useResultsWorkflow(
           result.input.toLowerCase().includes(keyword) ||
           result.output.toLowerCase().includes(keyword) ||
           (result.error?.toLowerCase().includes(keyword) ?? false);
-        const matchesStatus =
-          resultStatusFilter === "all" || result.status === resultStatusFilter;
-        return matchesKeyword && matchesStatus;
+        const matchesType = resultTypeFilter === "all" || result.action === resultTypeFilter;
+        return matchesKeyword && matchesType;
       })
       .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)));
-  }, [resultKeyword, resultStatusFilter, results]);
+  }, [resultKeyword, resultTypeFilter, results]);
 
   async function runAction(actionType: ActionType, sourceInput: string) {
     const action = promptActions.find((item) => item.type === actionType);
@@ -228,8 +227,8 @@ export function useResultsWorkflow(
     copiedResultId,
     resultKeyword,
     setResultKeyword,
-    resultStatusFilter,
-    setResultStatusFilter,
+    resultTypeFilter,
+    setResultTypeFilter,
     runAction,
     rerunResult,
     toggleResult,

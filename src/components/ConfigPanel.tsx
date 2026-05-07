@@ -202,7 +202,7 @@ export function ConfigPanel({
   }));
 
   return (
-    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onTabChange(null)}>
+    <div className="modal-backdrop modal-backdrop--config" onClick={(e) => e.target === e.currentTarget && onTabChange(null)}>
       <section className="provider-panel config-panel" role="dialog" aria-modal="true">
         <header className="provider-panel-header">
           <div className="config-tabs">

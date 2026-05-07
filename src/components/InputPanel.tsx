@@ -34,15 +34,6 @@ export function InputPanel({
           <strong>LinguaCheck</strong>
           <span>AI Writing Copilot</span>
         </div>
-        <button
-          className="button button-ghost button-compact"
-          type="button"
-          onClick={onClearInput}
-          disabled={!input.trim()}
-        >
-          <Eraser size={14} strokeWidth={2.4} />
-          清空输入
-        </button>
       </div>
 
       <div className="composer-shell">
@@ -54,11 +45,19 @@ export function InputPanel({
           placeholder="粘贴英文、中文或混合文本。可以是一句话、一段邮件、一段技术讨论或你想润色的表达。"
           spellCheck
         />
-      </div>
-
-      <div className="input-stats">
-        <span>{inputStats.words} 词</span>
-        <span>{inputStats.chars} 字符</span>
+        <div className="composer-footer">
+          <button
+            className="button button-ghost button-compact composer-clear-button"
+            type="button"
+            onClick={onClearInput}
+            disabled={!input.trim()}
+          >
+            <Eraser size={14} strokeWidth={2.4} />
+            清空
+          </button>
+          <span>{inputStats.words} 词</span>
+          <span>{inputStats.chars} 字符</span>
+        </div>
       </div>
 
       <span className="action-grid-title">Actions</span>

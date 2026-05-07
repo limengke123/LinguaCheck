@@ -46,7 +46,7 @@ export function useGlobalShortcuts({
       }
 
       if (commandPressed && !event.altKey && !event.shiftKey) {
-        if (event.key.toLowerCase() === "p") {
+        if (event.code === "KeyP" || event.key.toLowerCase() === "p") {
           event.preventDefault();
           onOpenQuickInput();
           return;
@@ -76,8 +76,8 @@ export function useGlobalShortcuts({
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [
     promptActions,
     providers,

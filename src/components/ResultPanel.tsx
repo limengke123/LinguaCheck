@@ -28,9 +28,9 @@ type ResultPanelProps = {
   runningAction: ActionType | null;
   activeProvider: ProviderConfig | undefined;
   resultKeyword: string;
-  resultStatusFilter: "all" | "done" | "error" | "loading";
+  resultTypeFilter: "all" | ActionType;
   onKeywordChange: (value: string) => void;
-  onStatusFilterChange: (value: "all" | "done" | "error" | "loading") => void;
+  onTypeFilterChange: (value: "all" | ActionType) => void;
   onCopyResult: (result: AssistantResult) => void;
   onRerunResult: (result: AssistantResult, newInput?: string) => void;
   onRestoreInput: (input: string) => void;
@@ -41,9 +41,7 @@ type ResultPanelProps = {
   onOpenConfig: () => void;
   onClearAll: () => void;
   previewMode: boolean;
-  previewInputCollapsed: boolean;
   onTogglePreviewMode: () => void;
-  onTogglePreviewInput: () => void;
   onOpenQuickInput: () => void;
 };
 
@@ -55,9 +53,9 @@ export function ResultPanel({
   runningAction,
   activeProvider,
   resultKeyword,
-  resultStatusFilter,
+  resultTypeFilter,
   onKeywordChange,
-  onStatusFilterChange,
+  onTypeFilterChange,
   onCopyResult,
   onRerunResult,
   onRestoreInput,
@@ -68,16 +66,15 @@ export function ResultPanel({
   onOpenConfig,
   onClearAll,
   previewMode,
-  previewInputCollapsed,
   onTogglePreviewMode,
-  onTogglePreviewInput,
   onOpenQuickInput,
 }: ResultPanelProps) {
-  const statusOptions = [
-    { value: "all", label: "全部" },
-    { value: "done", label: "完成" },
-    { value: "loading", label: "运行" },
-    { value: "error", label: "失败" },
+  const typeOptions = [
+    { value: "all", label: "全部类型" },
+    ...Array.from(new Map(results.map((item) => [item.action, item.actionLabel])).entries()).map(([value, label]) => ({
+      value,
+      label,
+    })),
   ];
 
   return (
@@ -99,11 +96,9 @@ export function ResultPanel({
         </label>
         <CustomSelect
           className="status-filter"
-          value={resultStatusFilter}
-          options={statusOptions}
-          onChange={(value) =>
-            onStatusFilterChange(value as "all" | "done" | "error" | "loading")
-          }
+          value={resultTypeFilter}
+          options={typeOptions}
+          onChange={(value) => onTypeFilterChange(value as "all" | ActionType)}
         />
       </div>
 
@@ -150,25 +145,14 @@ export function ResultPanel({
           >
             Preview
           </button>
-          {previewMode ? (
-            <>
-              <button
-                className="button button-ghost button-compact"
-                type="button"
-                onClick={onTogglePreviewInput}
-              >
-                {previewInputCollapsed ? "展开 Input" : "折叠 Input"}
-              </button>
-              <button
-                className="button button-ghost button-compact"
-                type="button"
-                onClick={onOpenQuickInput}
-                title="⌘P"
-              >
-                ⌘P 快速执行
-              </button>
-            </>
-          ) : null}
+          <button
+            className="button button-ghost button-compact"
+            type="button"
+            onClick={onOpenQuickInput}
+            title="⌘P"
+          >
+            ⌘P 快速执行
+          </button>
           <button
             className="button button-ghost button-compact"
             type="button"
@@ -300,7 +284,7 @@ function ResultCard({
       }
     >
       <header className="result-card-header">
-        <span className="result-index">{index}</span>
+        <span className="result-index">#{index}</span>
         <button
           className="collapse-button"
           type="button"

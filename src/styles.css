@@ -16,6 +16,8 @@
   --accent: #6366f1;
   --accent-soft: #eef2ff;
   --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
   --pill: 9999px;
   font-family: "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
@@ -151,8 +153,12 @@ textarea:focus-visible {
 }
 
 .button {
-  min-height: 40px;
-  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  border-radius: var(--radius-lg);
   transition:
     transform 120ms ease,
     background-color 120ms ease,
@@ -162,7 +168,7 @@ textarea:focus-visible {
 }
 
 .button-primary {
-  padding: 0 14px;
+  padding: 0 13px;
   background: var(--blue);
   color: white;
 }
@@ -172,7 +178,7 @@ textarea:focus-visible {
 }
 
 .button-ghost {
-  padding: 0 12px;
+  padding: 0 11px;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
@@ -184,16 +190,17 @@ textarea:focus-visible {
 }
 
 .button-danger {
-  padding: 0 14px;
+  padding: 0 13px;
   border: 1px solid rgba(176, 0, 32, 0.22);
   background: #fff7f8;
   color: var(--red);
 }
 
 .button-compact {
-  min-height: 36px;
-  padding: 0 14px;
-  font-size: 14px;
+  min-height: 32px;
+  padding: 0 11px;
+  border-radius: 10px;
+  font-size: 13px;
 }
 
 .button--active {
@@ -210,7 +217,7 @@ textarea:focus-visible {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line-soft);
-  border-radius: 16px;
+  border-radius: 14px;
   background: color-mix(in oklab, var(--surface) 90%, transparent);
   backdrop-filter: blur(8px);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
@@ -227,7 +234,7 @@ textarea:focus-visible {
   min-height: 260px;
   flex: 1;
   resize: none;
-  padding: 22px 22px 56px;
+  padding: 20px 20px 60px;
   border: 0;
   background: transparent;
   color: var(--ink);
@@ -241,9 +248,9 @@ textarea:focus-visible {
 
 .icon-button {
   display: inline-grid;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid var(--line-soft);
@@ -325,6 +332,39 @@ textarea:focus-visible {
   gap: 8px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.composer-footer {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in oklab, var(--line) 65%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  color: color-mix(in oklab, var(--muted) 78%, transparent);
+  font-size: 11px;
+  backdrop-filter: blur(4px);
+}
+
+.composer-footer span {
+  opacity: 0.82;
+}
+
+.composer-clear-button {
+  min-height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  border-color: color-mix(in oklab, var(--line) 75%, transparent);
+}
+
+.composer-clear-button svg {
+  width: 12px;
+  height: 12px;
 }
 
 .action-grid {
@@ -464,7 +504,7 @@ textarea:focus-visible {
   overflow-y: auto;
   scrollbar-gutter: stable;
   padding-right: 2px;
-  gap: 10px;
+  gap: 8px;
 }
 
 .output-footer {
@@ -473,7 +513,7 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 2px 2px;
+  padding: 4px 2px 1px;
   color: var(--muted);
   font-size: 12px;
 }
@@ -500,7 +540,7 @@ textarea:focus-visible {
 .footer-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .footer-settings {
@@ -537,7 +577,7 @@ textarea:focus-visible {
 }
 
 .result-card {
-  padding: 12px 14px;
+  padding: 10px 12px;
   transition:
     border-color 140ms ease,
     background-color 140ms ease;
@@ -561,21 +601,19 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 38px;
-  margin-bottom: 10px;
+  min-height: 34px;
+  margin-bottom: 8px;
 }
 
 .result-index {
-  display: inline-grid;
-  width: 24px;
-  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
   flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--surface-strong);
-  color: var(--muted);
-  font-size: 11px;
+  color: color-mix(in oklab, var(--muted) 88%, var(--ink));
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -592,9 +630,9 @@ textarea:focus-visible {
 
 .collapse-button {
   display: grid;
-  width: 30px;
-  height: 30px;
-  min-height: 30px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
   flex: 0 0 auto;
   place-items: center;
   color: var(--muted);
@@ -609,7 +647,7 @@ textarea:focus-visible {
   display: grid;
   min-width: 0;
   flex: 1;
-  gap: 2px;
+  gap: 1px;
   padding: 3px 2px;
   text-align: left;
   user-select: none;
@@ -621,7 +659,7 @@ textarea:focus-visible {
 .result-title-button span {
   overflow: hidden;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.35;
   text-overflow: ellipsis;
@@ -629,7 +667,7 @@ textarea:focus-visible {
 }
 
 .result-input-preview {
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 500 !important;
   color: var(--ink) !important;
 }
@@ -637,7 +675,7 @@ textarea:focus-visible {
 .result-title-button small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -647,7 +685,7 @@ textarea:focus-visible {
 .result-actions {
   display: flex;
   flex: 0 0 auto;
-  gap: 6px;
+  gap: 4px;
   opacity: 0;
   transition: opacity 120ms ease;
 }
@@ -658,9 +696,9 @@ textarea:focus-visible {
 }
 
 .result-icon-button {
-  width: 30px;
-  height: 30px;
-  min-height: 30px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
 }
 
 .result-card-header h3 {
@@ -676,7 +714,7 @@ textarea:focus-visible {
 }
 
 .input-quote {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
   background: var(--surface-strong);
@@ -688,7 +726,7 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 8px 12px;
+  padding: 7px 10px;
   background: transparent;
   color: var(--muted);
   font-size: 11px;
@@ -721,7 +759,7 @@ textarea:focus-visible {
 
 .input-quote-text {
   margin: 0;
-  padding: 0 12px 12px;
+  padding: 0 10px 10px;
   color: #3a3a3c;
   font-size: 14px;
   white-space: pre-wrap;
@@ -788,7 +826,7 @@ textarea:focus-visible {
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
   background: var(--surface);
-  padding: 14px;
+  padding: 12px;
 }
 
 .copy-block-button {
@@ -973,6 +1011,11 @@ textarea:focus-visible {
   backdrop-filter: blur(12px);
 }
 
+.modal-backdrop--config {
+  place-items: start center;
+  padding-top: 72px;
+}
+
 .provider-panel {
   display: flex;
   width: min(920px, 100%);
@@ -980,7 +1023,7 @@ textarea:focus-visible {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surface);
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.2);
 }
@@ -1042,15 +1085,15 @@ textarea:focus-visible {
 }
 
 .provider-field-input {
-  border-radius: 10px;
-  border-color: color-mix(in oklab, var(--line) 82%, var(--accent));
-  background: color-mix(in oklab, var(--surface) 92%, var(--accent-soft));
+  border-radius: 8px;
+  border-color: var(--line);
+  background: var(--surface);
   transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
 }
 
 .provider-field-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 14%, transparent);
   outline: none;
 }
 
@@ -1070,7 +1113,7 @@ textarea:focus-visible {
 }
 
 .provider-card {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1392,7 +1435,7 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 12px;
 }
 
 .prompt-config-view-icon {
@@ -1455,14 +1498,16 @@ textarea:focus-visible {
 
 /* Prompt Config Edit */
 .prompt-config-edit {
-  padding: 14px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .prompt-config-edit-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
   gap: 12px;
 }
 
@@ -1480,7 +1525,7 @@ textarea:focus-visible {
 }
 
 .prompt-config-field--icon {
-  max-width: 140px;
+  max-width: 200px;
 }
 
 .prompt-icon-picker {
@@ -1800,6 +1845,10 @@ textarea:focus-visible {
 
 .prompt-config-field .select-wrapper {
   z-index: 12;
+}
+
+.prompt-config-field .select-dropdown {
+  z-index: 360;
 }
 
 .provider-name-input,
