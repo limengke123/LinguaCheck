@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { runPrompt } from "../api";
 import { buildPrompt } from "../prompts";
 import { clearResults as dbClearResults, deleteResult as dbDeleteResult, loadResults, saveResult } from "../storage";
@@ -38,6 +38,7 @@ export function useResultsWorkflow(
   const [resultKeyword, setResultKeyword] = useState("");
   const [resultTypeFilter, setResultTypeFilter] = useState<ResultTypeFilter>("all");
   const [resultsLoading, setResultsLoading] = useState(true);
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
     loadResults()
@@ -52,11 +53,16 @@ export function useResultsWorkflow(
             setExpandedResultIds(new Set([loaded[0].id]));
           }
         }
+        isInitializedRef.current = true;
       })
-      .catch(() => setResultsLoading(false));
+      .catch(() => {
+        setResultsLoading(false);
+        isInitializedRef.current = true;
+      });
   }, []);
 
   useEffect(() => {
+    if (!isInitializedRef.current) return;
     saveExpandedIds(expandedResultIds);
   }, [expandedResultIds]);
 
