@@ -50,15 +50,12 @@ export function useGlobalShortcuts({
       if (commandPressed && !event.altKey && !event.shiftKey) {
         if (event.code === "KeyP" || event.key.toLowerCase() === "p") {
           event.preventDefault();
-          onOpenQuickInput();
+          onTogglePreviewMode();
           return;
         }
-      }
-
-      if (commandPressed && event.shiftKey && !event.altKey) {
-        if (event.code === "KeyP" || event.key.toLowerCase() === "p") {
+        if (event.code === "KeyO" || event.key.toLowerCase() === "o") {
           event.preventDefault();
-          onTogglePreviewMode();
+          onOpenQuickInput();
           return;
         }
         if (event.key === "Enter") {
@@ -82,9 +79,6 @@ export function useGlobalShortcuts({
           focusTextarea();
           return;
         }
-      }
-
-      if (commandPressed && !event.altKey && !event.shiftKey) {
         const index = Number(event.key) - 1;
         if (index >= 0 && index < providers.length) {
           event.preventDefault();

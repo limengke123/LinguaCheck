@@ -253,7 +253,7 @@ function App() {
           <section className="quick-input-spotlight" role="dialog" aria-modal="true" aria-label="Quick input">
             <header className="quick-input-spotlight-header">
               <h3>Quick Run</h3>
-              <span className="quick-input-shortcut">⌘P</span>
+              <span className="quick-input-shortcut">⌘O</span>
               <button className="icon-button" type="button" onClick={() => setShowQuickInput(false)} aria-label="Close quick input">
                 <X size={15} strokeWidth={2.4} />
               </button>
