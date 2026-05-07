@@ -1,0 +1,81 @@
+import { useEffect } from "react";
+import type { ActionType, ProviderConfig } from "../types";
+import type { PromptAction } from "../prompts";
+
+type UseGlobalShortcutsArgs = {
+  promptActions: PromptAction[];
+  providers: ProviderConfig[];
+  runningAction: ActionType | null;
+  onRunAction: (type: ActionType) => void;
+  onSetInputFromClipboard: (text: string) => void;
+  onClearInput: () => void;
+  onSetActiveProvider: (providerId: string) => void;
+  focusTextarea: () => void;
+};
+
+export function useGlobalShortcuts({
+  promptActions,
+  providers,
+  runningAction,
+  onRunAction,
+  onSetInputFromClipboard,
+  onClearInput,
+  onSetActiveProvider,
+  focusTextarea,
+}: UseGlobalShortcutsArgs) {
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key === "v" && !event.shiftKey && !event.altKey) {
+        const target = event.target as HTMLElement;
+        if (target.tagName !== "TEXTAREA" && target.tagName !== "INPUT") {
+          event.preventDefault();
+          navigator.clipboard
+            .readText()
+            .then((text) => {
+              if (text) onSetInputFromClipboard(text);
+              focusTextarea();
+            })
+            .catch(() => focusTextarea());
+          return;
+        }
+      }
+
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
+        const actionIndex = Number(event.key) - 1;
+        if (actionIndex >= 0 && actionIndex < promptActions.length) {
+          if (runningAction === null) {
+            event.preventDefault();
+            onRunAction(promptActions[actionIndex].type);
+          }
+          return;
+        }
+        if (event.key === "0") {
+          event.preventDefault();
+          onClearInput();
+          focusTextarea();
+          return;
+        }
+      }
+
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
+        const index = Number(event.key) - 1;
+        if (index >= 0 && index < providers.length) {
+          event.preventDefault();
+          onSetActiveProvider(providers[index].id);
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    promptActions,
+    providers,
+    runningAction,
+    onRunAction,
+    onSetInputFromClipboard,
+    onClearInput,
+    onSetActiveProvider,
+    focusTextarea,
+  ]);
+}

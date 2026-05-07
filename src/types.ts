@@ -46,4 +46,5 @@ export type AssistantResult = {
   durationMs: number;
   error?: string;
   status: "loading" | "done" | "error";
+  pinned?: boolean;
 };

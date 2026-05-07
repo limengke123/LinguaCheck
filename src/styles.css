@@ -98,6 +98,10 @@ textarea:focus-visible {
 
 .app-shell {
   min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(99, 102, 241, 0.1), transparent 38%),
+    radial-gradient(circle at 85% 0%, rgba(14, 165, 233, 0.1), transparent 34%),
+    var(--soft);
 }
 
 .workspace {
@@ -118,6 +122,31 @@ textarea:focus-visible {
   gap: 12px;
   overflow-y: auto;
   scrollbar-gutter: stable;
+  padding: 4px;
+}
+
+.hero-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hero-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+}
+
+.hero-title strong {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.hero-title span {
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .button {
@@ -174,9 +203,10 @@ textarea:focus-visible {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line-soft);
-  border-radius: 14px;
-  background: var(--surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--surface) 90%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
@@ -282,6 +312,14 @@ textarea:focus-visible {
   color: var(--text-secondary, #6b7280);
 }
 
+.input-stats {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .action-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -353,6 +391,42 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   padding: 0;
+}
+
+.result-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.search-input input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+}
+
+.status-filter {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 12px;
 }
 
 .result-list {
@@ -439,11 +513,21 @@ textarea:focus-visible {
   padding: 12px 14px;
   transition:
     border-color 140ms ease,
-    background-color 140ms ease;
+    background-color 140ms ease,
+    transform 140ms ease;
+}
+
+.result-card:hover {
+  transform: translateY(-1px);
 }
 
 .result-card--collapsed {
   background: rgba(255, 255, 255, 0.72);
+}
+
+.result-card:has([aria-label="Unpin"]) {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.15);
 }
 
 .result-card--error {
@@ -1032,6 +1116,11 @@ textarea:focus-visible {
   .action-grid,
   .provider-fields {
     grid-template-columns: 1fr;
+  }
+
+  .result-toolbar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .main-input {
