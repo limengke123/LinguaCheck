@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
+  CornerDownLeft,
   Edit2,
   RotateCcw,
   Settings as SettingsIcon,
@@ -876,6 +877,30 @@ function ResultCard({
     }
   }, [isEditing]);
 
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const modifier = isMac ? event.metaKey : event.ctrlKey;
+
+      if (event.key === "Escape" && isEditing) {
+        event.preventDefault();
+        setEditedInput(result.input);
+        setIsEditing(false);
+        return;
+      }
+
+      if (modifier && event.key === "Enter" && isEditing) {
+        event.preventDefault();
+        setIsEditing(false);
+        onRerun(editedInput);
+        return;
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isEditing, editedInput, result.input, onRerun]);
+
   return (
     <article
       className={
@@ -1037,7 +1062,7 @@ function ResultCard({
                       title="Restore to main input"
                       aria-label="Restore to main input"
                     >
-                      <RotateCcw size={14} strokeWidth={2.2} />
+                      <CornerDownLeft size={14} strokeWidth={2.2} />
                     </button>
                   </div>
                 </div>

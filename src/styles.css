@@ -539,11 +539,19 @@ textarea:focus-visible {
   display: flex;
   gap: 4px;
   margin-left: auto;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.input-quote:hover .input-quote-header-actions {
+  opacity: 1;
 }
 
 .input-quote-header-actions .icon-button {
   padding: 4px;
+  border: none;
   border-radius: var(--radius-sm);
+  background: transparent;
 }
 
 .input-quote-toggle {
