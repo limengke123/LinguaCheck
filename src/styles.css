@@ -1038,6 +1038,44 @@ textarea:focus-visible {
   border-top: 1px solid var(--line-soft);
 }
 
+.prompt-config-confirm-delete {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  padding: 0 8px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.prompt-config-confirm-delete span {
+  flex: 1;
+  color: var(--ink-light);
+}
+
+.prompt-config-confirm-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prompt-config-confirm-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.prompt-config-confirm-footer span {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink-light);
+}
+
+.prompt-config-confirm-footer .prompt-config-confirm-actions {
+  flex-shrink: 0;
+}
+
 .generate-prompt-dialog {
   width: min(420px, calc(100vw - 32px));
   padding: 20px;

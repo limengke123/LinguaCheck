@@ -385,13 +385,35 @@ export function PromptConfigModal({
             <Plus size={16} strokeWidth={2.5} />
             Add New
           </button>
-          <button
-            className="button button-ghost button-compact"
-            type="button"
-            onClick={() => setShowRestoreConfirm(true)}
-          >
-            Restore Defaults
-          </button>
+          {showRestoreConfirm ? (
+            <div className="prompt-config-confirm-footer">
+              <span>Restore all prompts to defaults?</span>
+              <div className="prompt-config-confirm-actions">
+                <button
+                  className="button button-ghost button-compact"
+                  type="button"
+                  onClick={() => setShowRestoreConfirm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="button button-danger button-compact"
+                  type="button"
+                  onClick={() => void handleRestoreDefaults()}
+                >
+                  Restore
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              className="button button-ghost button-compact"
+              type="button"
+              onClick={() => setShowRestoreConfirm(true)}
+            >
+              Restore Defaults
+            </button>
+          )}
         </div>
 
         {showGenerateDialog && (
@@ -458,32 +480,6 @@ export function PromptConfigModal({
           </div>
         )}
 
-        {showRestoreConfirm && (
-          <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && setShowRestoreConfirm(false)}>
-            <div className="generate-prompt-dialog">
-              <div className="generate-prompt-header">
-                <h3>Restore Defaults?</h3>
-              </div>
-              <p>Restore all prompts to default? Your custom prompts will be lost.</p>
-              <div className="generate-prompt-actions">
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  onClick={() => setShowRestoreConfirm(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="button button-danger"
-                  type="button"
-                  onClick={() => void handleRestoreDefaults()}
-                >
-                  Restore Defaults
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </section>
     </div>
   );
