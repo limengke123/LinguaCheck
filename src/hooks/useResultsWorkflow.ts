@@ -9,7 +9,7 @@ type ResultTypeFilter = "all" | ActionType;
 
 const EXPANDED_IDS_KEY = "linguacheck.expandedIds";
 
-function loadExpandedIds(): Set<string> {
+function loadExpandedIds(): Set<string> | null {
   try {
     const raw = localStorage.getItem(EXPANDED_IDS_KEY);
     if (raw) {
@@ -19,7 +19,7 @@ function loadExpandedIds(): Set<string> {
   } catch {
     // ignore
   }
-  return new Set();
+  return null;
 }
 
 function saveExpandedIds(ids: Set<string>) {
@@ -33,7 +33,7 @@ export function useResultsWorkflow(
 ) {
   const [results, setResults] = useState<AssistantResult[]>([]);
   const [runningAction, setRunningAction] = useState<ActionType | null>(null);
-  const [expandedResultIds, setExpandedResultIds] = useState<Set<string>>(() => loadExpandedIds());
+  const [expandedResultIds, setExpandedResultIds] = useState<Set<string>>(() => new Set());
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   const [resultKeyword, setResultKeyword] = useState("");
   const [resultTypeFilter, setResultTypeFilter] = useState<ResultTypeFilter>("all");
@@ -44,8 +44,7 @@ export function useResultsWorkflow(
         if (loaded.length > 0) {
           setResults(loaded);
           const savedExpanded = loadExpandedIds();
-          const validExpanded = loaded.some((r) => savedExpanded.has(r.id));
-          if (validExpanded) {
+          if (savedExpanded !== null) {
             setExpandedResultIds(savedExpanded);
           } else if (loaded[0]) {
             setExpandedResultIds(new Set([loaded[0].id]));
