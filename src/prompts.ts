@@ -4,6 +4,7 @@ import {
   Languages,
   SearchCheck,
   Sparkles,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import type { ActionType, PromptAction } from "./types";
@@ -127,6 +128,23 @@ Yes 或 No，并用中文补一句判断。
 """
 `,
     iconName: "SearchCheck",
+  },
+  {
+    id: "search",
+    type: "search",
+    label: "搜索 Prompts",
+    shortLabel: "搜索",
+    description: "搜索并运行 Prompt",
+    systemPrompt: `回复规则：
+- 始终用中文说明和组织答案；英文改写、英文例句、英文术语可以保留英文。
+- 只输出 Markdown。
+- 控制篇幅，避免长篇废话。
+- 优先给可以直接复制使用的表达。
+- 不要解释你在做什么，不要输出寒暄。
+
+请根据用户输入选择合适的 Prompt 并执行。
+`,
+    iconName: "Search",
   },
 ];
 

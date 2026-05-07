@@ -598,6 +598,11 @@ textarea:focus-visible {
   background: color-mix(in oklab, var(--red) 6%, var(--surface));
 }
 
+.result-card--temporary {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
 .result-card-header {
   display: flex;
   align-items: center;

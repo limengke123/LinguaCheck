@@ -7,6 +7,7 @@ export type ActionType =
   | "zhToEn"
   | "polish"
   | "check"
+  | "search"
   | "correct_grammar"
   | "translate_en"
   | "translate_zh"
@@ -53,4 +54,5 @@ export type AssistantResult = {
   status: "loading" | "done" | "error";
   pinned?: boolean;
   iconName?: string;
+  temporary?: boolean;
 };

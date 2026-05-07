@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
+  Bookmark,
   Circle,
   ChevronDown,
   ChevronRight,
@@ -39,6 +40,7 @@ type ResultPanelProps = {
   onToggleResult: (id: string) => void;
   onDeleteResult: (id: string) => void;
   onPinResult: (id: string) => void;
+  onPromoteTemporaryResult: (id: string) => void;
   onExportMarkdown: () => void;
   onOpenConfig: () => void;
   onClearAll: () => void;
@@ -64,6 +66,7 @@ export function ResultPanel({
   onToggleResult,
   onDeleteResult,
   onPinResult,
+  onPromoteTemporaryResult,
   onExportMarkdown,
   onOpenConfig,
   onClearAll,
@@ -125,6 +128,7 @@ export function ResultPanel({
               onToggle={() => onToggleResult(result.id)}
               onDelete={() => onDeleteResult(result.id)}
               onPinToggle={() => onPinResult(result.id)}
+              onPromoteTemporary={result.temporary ? () => onPromoteTemporaryResult(result.id) : undefined}
             />
           ))
         )}
@@ -212,6 +216,7 @@ type ResultCardProps = {
   onToggle: () => void;
   onDelete: () => void;
   onPinToggle: () => void;
+  onPromoteTemporary?: () => void;
 };
 
 function ResultCard({
@@ -226,6 +231,7 @@ function ResultCard({
   onToggle,
   onDelete,
   onPinToggle,
+  onPromoteTemporary,
 }: ResultCardProps) {
   const [inputCollapsed, setInputCollapsed] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -288,13 +294,14 @@ function ResultCard({
   return (
     <article
       className={
-        result.status === "error"
+        (result.status === "error"
           ? "result-card result-card--error"
           : isLoading
             ? "result-card result-card--loading"
             : expanded
               ? "result-card"
-              : "result-card result-card--collapsed"
+              : "result-card result-card--collapsed") +
+        (result.temporary ? " result-card--temporary" : "")
       }
     >
       <header className="result-card-header">
@@ -375,6 +382,17 @@ function ResultCard({
             >
               {result.pinned ? <PinOff size={15} strokeWidth={2.2} /> : <Pin size={15} strokeWidth={2.2} />}
             </button>
+            {result.temporary && onPromoteTemporary ? (
+              <button
+                className="icon-button result-icon-button"
+                type="button"
+                onClick={onPromoteTemporary}
+                title="Keep"
+                aria-label="Keep result"
+              >
+                <Bookmark size={15} strokeWidth={2.2} />
+              </button>
+            ) : null}
             <button
               className="icon-button result-icon-button"
               type="button"

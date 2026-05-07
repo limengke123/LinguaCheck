@@ -47,7 +47,7 @@ export function useResultsWorkflow(
       .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)));
   }, [resultKeyword, resultTypeFilter, results]);
 
-  async function runAction(actionType: ActionType, sourceInput: string) {
+  async function runAction(actionType: ActionType, sourceInput: string, temporary = false) {
     const action = promptActions.find((item) => item.type === actionType);
     if (!action || !activeProvider) return;
     const startedAt = performance.now();
@@ -67,10 +67,13 @@ export function useResultsWorkflow(
       durationMs: 0,
       status: "loading",
       iconName: action.iconName,
+      temporary,
     };
     setResults((current) => [newResult, ...current]);
     setExpandedResultIds(new Set([resultId]));
-    void saveResult(newResult);
+    if (!temporary) {
+      void saveResult(newResult);
+    }
 
     try {
       const output = await runPrompt(
@@ -89,7 +92,9 @@ export function useResultsWorkflow(
         status: "done",
       };
       setResults((current) => current.map((r) => (r.id === resultId ? finalResult : r)));
-      void saveResult(finalResult);
+      if (!temporary) {
+        void saveResult(finalResult);
+      }
     } catch (error) {
       const errorResult: AssistantResult = {
         ...newResult,
@@ -98,7 +103,9 @@ export function useResultsWorkflow(
         status: "error",
       };
       setResults((current) => current.map((r) => (r.id === resultId ? errorResult : r)));
-      void saveResult(errorResult);
+      if (!temporary) {
+        void saveResult(errorResult);
+      }
     } finally {
       setRunningAction(null);
     }
@@ -185,6 +192,16 @@ export function useResultsWorkflow(
     });
   }
 
+  function promoteTemporaryResult(resultId: string) {
+    setResults((current) => {
+      const result = current.find((r) => r.id === resultId);
+      if (!result || !result.temporary) return current;
+      const promoted = { ...result, temporary: false };
+      void saveResult(promoted);
+      return current.map((r) => (r.id === resultId ? promoted : r));
+    });
+  }
+
   function clearAllResults() {
     setResults([]);
     void dbClearResults();
@@ -235,6 +252,7 @@ export function useResultsWorkflow(
     toggleResult,
     deleteResult,
     togglePinResult,
+    promoteTemporaryResult,
     clearAllResults,
     copyResultOutput,
     exportAllResultsAsMarkdown,

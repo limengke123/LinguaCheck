@@ -5,7 +5,7 @@ import type { ActionType } from "./types";
 import { InputPanel } from "./components/InputPanel";
 import { ResultPanel } from "./components/ResultPanel";
 import { ConfigPanel } from "./components/ConfigPanel";
-import { CornerDownLeft, Languages, X } from "lucide-react";
+import { CornerDownLeft, Search, X } from "lucide-react";
 import { useThemeMode } from "./hooks/useThemeMode";
 import { useProviderSettings } from "./hooks/useProviderSettings";
 import { useResultsWorkflow } from "./hooks/useResultsWorkflow";
@@ -50,6 +50,7 @@ function App() {
     toggleResult,
     deleteResult,
     togglePinResult,
+    promoteTemporaryResult,
     clearAllResults,
     copyResultOutput,
     exportAllResultsAsMarkdown,
@@ -111,14 +112,14 @@ function App() {
     if (!source || !activeProvider || runningAction !== null) {
       return;
     }
-    const fallbackAction = promptActions.find((action) => action.type === "enToZh")?.type ?? promptActions[0]?.type;
+    const fallbackAction = promptActions.find((action) => action.type === "search")?.type ?? promptActions[0]?.type;
     const targetAction = actionType ?? fallbackAction;
     if (!targetAction) {
       return;
     }
     setShowQuickInput(false);
     setQuickInputValue("");
-    await runAction(targetAction, source);
+    await runAction(targetAction, source, true);
   }
 
   function handleRestore(input: string) {
@@ -188,6 +189,7 @@ function App() {
           onToggleResult={toggleResult}
           onDeleteResult={deleteResult}
           onPinResult={togglePinResult}
+          onPromoteTemporaryResult={promoteTemporaryResult}
           onExportMarkdown={exportAllResultsAsMarkdown}
           onOpenConfig={() => setActiveConfigTab("provider")}
           onClearAll={clearAllResults}
@@ -249,7 +251,7 @@ function App() {
               className="quick-input-line"
               value={quickInputValue}
               onChange={(event) => setQuickInputValue(event.target.value)}
-              placeholder="输入文本后回车，默认直接英译中"
+              placeholder="输入文本后回车，自动选择合适的 Prompt"
               autoFocus
               onKeyDown={(event) => {
                 if (event.key === "Escape") {
@@ -272,8 +274,8 @@ function App() {
                 onClick={() => void handleQuickRun()}
                 disabled={!quickInputValue.trim() || runningAction !== null}
               >
-                <Languages size={14} strokeWidth={2.4} />
-                英译中
+                <Search size={14} strokeWidth={2.4} />
+                搜索
               </button>
               {promptActions.slice(0, 3).map((action) => (
                 <button
