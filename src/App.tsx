@@ -241,6 +241,9 @@ function App() {
   }
 
   async function handleRerun(result: AssistantResult, newInput?: string) {
+    // Capture these upfront to avoid stale closures in async callbacks
+    const resultId = result.id;
+    const resultAction = result.action;
     const originalProvider =
       settings.providers.find((provider) => provider.id === result.providerId) ?? activeProvider;
     const inputToUse = newInput ?? result.input;
@@ -248,13 +251,13 @@ function App() {
       return;
     }
 
-    const action = promptActions.find((item) => item.type === result.action);
+    const action = promptActions.find((item) => item.type === resultAction);
     if (!action) {
       return;
     }
 
     const startedAt = performance.now();
-    setRunningAction(result.action);
+    setRunningAction(resultAction);
     setCopiedResultId(null);
 
     // Update existing card to loading state
@@ -267,7 +270,7 @@ function App() {
       status: "loading",
     };
     setResults((current) =>
-      current.map((r) => (r.id === result.id ? loadingResult : r)),
+      current.map((r) => (r.id === resultId ? loadingResult : r)),
     );
     void saveResult(loadingResult);
 
@@ -278,7 +281,7 @@ function App() {
         (chunk) => {
           setResults((current) =>
             current.map((r) =>
-              r.id === result.id ? { ...r, output: r.output + chunk } : r,
+              r.id === resultId ? { ...r, output: r.output + chunk } : r,
             ),
           );
         },
@@ -290,7 +293,7 @@ function App() {
         status: "done",
       };
       setResults((current) =>
-        current.map((r) => (r.id === result.id ? finalResult : r)),
+        current.map((r) => (r.id === resultId ? finalResult : r)),
       );
       void saveResult(finalResult);
     } catch (error) {
@@ -301,7 +304,7 @@ function App() {
         status: "error",
       };
       setResults((current) =>
-        current.map((r) => (r.id === result.id ? errorResult : r)),
+        current.map((r) => (r.id === resultId ? errorResult : r)),
       );
       void saveResult(errorResult);
     } finally {
