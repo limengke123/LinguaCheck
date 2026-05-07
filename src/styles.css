@@ -191,8 +191,8 @@ textarea:focus-visible {
 
 .button-danger {
   padding: 0 13px;
-  border: 1px solid rgba(176, 0, 32, 0.22);
-  background: #fff7f8;
+  border: 1px solid color-mix(in oklab, var(--red) 22%, transparent);
+  background: color-mix(in oklab, var(--red) 6%, var(--surface));
   color: var(--red);
 }
 
@@ -204,7 +204,7 @@ textarea:focus-visible {
 }
 
 .button--active {
-  border-color: rgba(99, 102, 241, 0.38);
+  border-color: color-mix(in oklab, var(--accent) 38%, transparent);
   background: var(--accent-soft);
   color: var(--accent);
 }
@@ -220,13 +220,13 @@ textarea:focus-visible {
   border-radius: 14px;
   background: color-mix(in oklab, var(--surface) 90%, transparent);
   backdrop-filter: blur(8px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 24px color-mix(in oklab, var(--ink) 6%, transparent);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .composer-shell:focus-within {
   border-color: var(--line);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--ink) 6%, transparent);
 }
 
 .main-input {
@@ -243,7 +243,8 @@ textarea:focus-visible {
 }
 
 .main-input::placeholder {
-  color: #8b8b92;
+  color: var(--muted);
+  opacity: 0.7;
 }
 
 .icon-button {
@@ -255,12 +256,12 @@ textarea:focus-visible {
   place-items: center;
   border: 1px solid var(--line-soft);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.82);
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
   color: var(--muted);
 }
 
 .icon-button:hover:not(:disabled) {
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: color-mix(in oklab, var(--accent) 30%, transparent);
   background: var(--accent-soft);
   color: var(--accent);
 }
@@ -274,7 +275,7 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--ink) 12%, transparent);
   z-index: 100;
   animation: selection-pop 120ms ease-out;
 }
@@ -323,7 +324,7 @@ textarea:focus-visible {
 .action-grid-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-secondary, #6b7280);
+  color: var(--muted);
 }
 
 .input-stats {
@@ -390,7 +391,7 @@ textarea:focus-visible {
 }
 
 .action-button:hover:not(:disabled) {
-  border-color: rgba(99, 102, 241, 0.45);
+  border-color: color-mix(in oklab, var(--accent) 45%, transparent);
   background: var(--accent-soft);
 }
 
@@ -488,7 +489,7 @@ textarea:focus-visible {
   gap: 6px;
   height: 28px;
   padding: 0 10px;
-  border: 1px solid rgba(99, 102, 241, 0.35);
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
@@ -584,17 +585,17 @@ textarea:focus-visible {
 }
 
 .result-card--collapsed {
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in oklab, var(--surface) 72%, transparent);
 }
 
 .result-card:has([aria-label="Unpin"]) {
-  border-color: rgba(99, 102, 241, 0.45);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.15);
+  border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--accent) 15%, transparent);
 }
 
 .result-card--error {
-  border-color: rgba(176, 0, 32, 0.28);
-  background: #fffafb;
+  border-color: color-mix(in oklab, var(--red) 28%, transparent);
+  background: color-mix(in oklab, var(--red) 6%, var(--surface));
 }
 
 .result-card-header {
@@ -739,7 +740,7 @@ textarea:focus-visible {
 }
 
 .input-quote-header:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: color-mix(in oklab, var(--ink) 3%, transparent);
 }
 
 .input-quote-header-actions {
@@ -764,7 +765,7 @@ textarea:focus-visible {
 .input-quote-text {
   margin: 0;
   padding: 0 10px 10px;
-  color: #3a3a3c;
+  color: var(--ink);
   font-size: 14px;
   white-space: pre-wrap;
   word-break: break-word;
@@ -791,7 +792,7 @@ textarea:focus-visible {
   padding: 12px;
   border: none;
   background: transparent;
-  color: #3a3a3c;
+  color: var(--ink);
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
@@ -803,7 +804,7 @@ textarea:focus-visible {
 }
 
 .input-edit-textarea--active {
-  background: #e8f0fe;
+  background: color-mix(in oklab, var(--accent) 8%, var(--surface));
 }
 
 .input-edit-inline-button {
@@ -856,7 +857,7 @@ textarea:focus-visible {
   right: 48px;
   padding: 4px 8px;
   border-radius: var(--pill);
-  background: #f0f7ff;
+  background: color-mix(in oklab, var(--blue) 12%, var(--surface));
   color: var(--blue);
   font-size: 12px;
 }
@@ -914,8 +915,8 @@ textarea:focus-visible {
   margin: 12px 0;
   padding: 8px 12px;
   border-left: 3px solid var(--blue);
-  background: #f7fbff;
-  color: #303034;
+  background: color-mix(in oklab, var(--blue) 8%, var(--surface));
+  color: var(--ink);
 }
 
 .markdown-body code {
@@ -965,7 +966,7 @@ textarea:focus-visible {
 .result-error {
   padding: 12px;
   border-radius: var(--radius);
-  background: #fff2f4;
+  background: color-mix(in oklab, var(--red) 6%, var(--surface));
   white-space: pre-wrap;
 }
 
@@ -1044,14 +1045,14 @@ textarea:focus-visible {
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(0, 0, 0, 0.3);
+  background: color-mix(in oklab, var(--surface) 20%, var(--soft));
   backdrop-filter: blur(3px);
 }
 
 .modal-backdrop--spotlight {
   place-items: start center;
   padding-top: 10vh;
-  background: rgba(10, 10, 12, 0.24);
+  background: color-mix(in oklab, var(--soft) 24%, transparent);
   backdrop-filter: blur(12px);
 }
 
@@ -1069,7 +1070,7 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 30px 70px color-mix(in oklab, var(--ink) 20%, transparent);
 }
 
 .provider-panel-header,
@@ -1198,7 +1199,7 @@ textarea:focus-visible {
 }
 
 .provider-pill--active {
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: color-mix(in oklab, var(--accent) 30%, transparent);
   background: var(--accent-soft);
   color: var(--accent);
 }
@@ -1746,8 +1747,8 @@ textarea:focus-visible {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  background: color-mix(in oklab, var(--surface) 100%, white);
+  box-shadow: 0 1px 3px color-mix(in oklab, var(--ink) 20%, transparent);
   transition: transform 200ms ease;
 }
 
@@ -1802,7 +1803,7 @@ textarea:focus-visible {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--ink) 12%, transparent), 0 2px 8px color-mix(in oklab, var(--ink) 8%, transparent);
   z-index: 320;
   overflow: hidden;
   animation: select-open 120ms ease;
@@ -1880,7 +1881,7 @@ textarea:focus-visible {
   background: var(--surface);
   color: var(--accent);
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px color-mix(in oklab, var(--ink) 10%, transparent);
 }
 
 /* Template select styling */
@@ -1954,7 +1955,7 @@ textarea:focus-visible {
   border-radius: 16px;
   background: color-mix(in oklab, var(--surface) 72%, transparent);
   backdrop-filter: blur(20px) saturate(130%);
-  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 22px 56px color-mix(in oklab, var(--ink) 28%, transparent);
 }
 
 .quick-input-spotlight-header {
