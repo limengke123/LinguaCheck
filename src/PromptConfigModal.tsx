@@ -3,6 +3,7 @@ import {
   Check,
   Edit2,
   Languages,
+  Loader2,
   MessageSquare,
   PenTool,
   Plus,
@@ -12,9 +13,10 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import type { PromptAction } from "./types";
+import type { PromptAction, ProviderConfig } from "./types";
 import {
   createPromptAction,
+  defaultPromptActions,
   savePromptActions,
 } from "./storage";
 
@@ -48,15 +50,23 @@ export function PromptConfigModal({
   actions,
   onClose,
   onSave,
+  activeProvider,
+  onGeneratePrompt,
 }: {
   actions: PromptAction[];
   onClose: () => void;
   onSave: (actions: PromptAction[]) => void;
+  activeProvider: ProviderConfig | undefined;
+  onGeneratePrompt: (description: string) => Promise<string>;
 }) {
   const [items, setItems] = useState<PromptAction[]>(actions);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editState, setEditState] = useState<EditingState>({ mode: "view" });
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  const [generateDescription, setGenerateDescription] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
 
   function startEdit(item: PromptAction) {
     setEditingId(item.id);
@@ -105,6 +115,36 @@ export function PromptConfigModal({
     startEdit(newAction);
   }
 
+  async function addAIGenerated() {
+    if (!generateDescription.trim()) return;
+    setIsGenerating(true);
+    try {
+      const generatedPrompt = await onGeneratePrompt(generateDescription.trim());
+      const newAction: PromptAction = {
+        id: crypto.randomUUID(),
+        type: "explain",
+        label: "AI Generated",
+        shortLabel: "AI",
+        description: generateDescription.trim().slice(0, 50),
+        systemPrompt: generatedPrompt,
+        iconName: "Wand2",
+      };
+      setItems((current) => [...current, newAction]);
+      setShowGenerateDialog(false);
+      setGenerateDescription("");
+      startEdit(newAction);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  function handleRestoreDefaults() {
+    savePromptActions(defaultPromptActions);
+    onSave(defaultPromptActions);
+    setShowRestoreConfirm(false);
+    onClose();
+  }
+
   function handleSaveAndClose() {
     savePromptActions(items);
     onSave(items);
@@ -126,9 +166,20 @@ export function PromptConfigModal({
             <h2 id="prompt-config-title">Configure Prompts</h2>
             <p>Customize button labels, system prompts, and icons. Changes are saved automatically.</p>
           </div>
-          <button className="button button-primary" type="button" onClick={handleSaveAndClose}>
-            Done
-          </button>
+          <div className="prompt-config-header-actions">
+            <button
+              className="button button-ghost button-compact"
+              type="button"
+              onClick={() => setShowGenerateDialog(true)}
+              title="AI Generate new prompt"
+            >
+              <Wand2 size={14} strokeWidth={2.5} />
+              AI Generate
+            </button>
+            <button className="button button-primary" type="button" onClick={handleSaveAndClose}>
+              Done
+            </button>
+          </div>
         </header>
 
         <div className="prompt-config-list">
@@ -334,7 +385,105 @@ export function PromptConfigModal({
             <Plus size={16} strokeWidth={2.5} />
             Add New
           </button>
+          <button
+            className="button button-ghost button-compact"
+            type="button"
+            onClick={() => setShowRestoreConfirm(true)}
+          >
+            Restore Defaults
+          </button>
         </div>
+
+        {showGenerateDialog && (
+          <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && !isGenerating && setShowGenerateDialog(false)}>
+            <div className="generate-prompt-dialog">
+              <div className="generate-prompt-header">
+                <h3>AI Generate Prompt</h3>
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={() => !isGenerating && setShowGenerateDialog(false)}
+                  disabled={isGenerating}
+                >
+                  <X size={16} strokeWidth={2} />
+                </button>
+              </div>
+              <p>Describe what you want this prompt to do, and AI will generate it for you.</p>
+              <input
+                className="provider-name-input"
+                type="text"
+                placeholder="e.g., help me check grammar politely"
+                value={generateDescription}
+                onChange={(e) => setGenerateDescription(e.target.value)}
+                disabled={isGenerating}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !isGenerating && generateDescription.trim()) {
+                    void addAIGenerated();
+                  }
+                  if (e.key === "Escape" && !isGenerating) {
+                    setShowGenerateDialog(false);
+                  }
+                }}
+                autoFocus
+              />
+              <div className="generate-prompt-actions">
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => !isGenerating && setShowGenerateDialog(false)}
+                  disabled={isGenerating}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="button button-primary"
+                  type="button"
+                  onClick={() => void addAIGenerated()}
+                  disabled={isGenerating || !generateDescription.trim()}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 size={14} strokeWidth={2.5} className="spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 size={14} strokeWidth={2.5} />
+                      Generate
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showRestoreConfirm && (
+          <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && setShowRestoreConfirm(false)}>
+            <div className="generate-prompt-dialog">
+              <div className="generate-prompt-header">
+                <h3>Restore Defaults?</h3>
+              </div>
+              <p>Restore all prompts to default? Your custom prompts will be lost.</p>
+              <div className="generate-prompt-actions">
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => setShowRestoreConfirm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="button button-danger"
+                  type="button"
+                  onClick={() => void handleRestoreDefaults()}
+                >
+                  Restore Defaults
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

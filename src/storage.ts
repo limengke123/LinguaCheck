@@ -1,4 +1,5 @@
 import type { AssistantResult, ProviderConfig, PromptAction, Settings } from "./types";
+export { defaultPromptActions } from "./prompts";
 import { defaultPromptActions } from "./prompts";
 
 const DB_NAME = "linguacheck";

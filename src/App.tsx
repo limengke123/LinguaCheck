@@ -692,6 +692,15 @@ function App() {
       {isPromptConfigOpen ? (
         <PromptConfigModal
           actions={promptActions}
+          activeProvider={activeProvider}
+          onGeneratePrompt={async (description: string) => {
+            const prompt = `Generate a useful AI assistant instruction prompt for: ${description}. Reply with ONLY the system prompt text, no explanation.`;
+            const result = await runPrompt(
+              activeProvider!,
+              prompt,
+            );
+            return result.trim();
+          }}
           onClose={() => setIsPromptConfigOpen(false)}
           onSave={(actions) => {
             setPromptActions(actions);
