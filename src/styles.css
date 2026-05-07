@@ -1144,3 +1144,291 @@ textarea:focus-visible {
     transform: rotate(360deg);
   }
 }
+
+/* Config Panel */
+.config-panel {
+  max-height: min(680px, calc(100vh - 36px));
+}
+
+.config-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.config-tab {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.config-tab:hover:not(:disabled) {
+  background: var(--surface-strong);
+  color: var(--ink);
+}
+
+.config-tab--active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.config-tab--active:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.config-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.config-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+/* Prompts Tab */
+.prompts-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prompt-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prompt-config-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.prompt-config-view {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.prompt-config-view-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+  color: var(--accent);
+}
+
+.prompt-config-view-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.prompt-config-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.prompt-config-desc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.prompt-config-preview {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.prompt-config-view-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.prompt-config-item:hover .prompt-config-view-actions {
+  opacity: 1;
+}
+
+.prompt-config-view-actions .icon-button {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+}
+
+/* Prompt Config Edit */
+.prompt-config-edit {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prompt-config-edit-row {
+  display: flex;
+  gap: 12px;
+}
+
+.prompt-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.prompt-config-field span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.prompt-config-field--icon {
+  max-width: 140px;
+}
+
+.prompt-icon-picker {
+  display: flex;
+  gap: 4px;
+}
+
+.prompt-icon-option {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.prompt-icon-option:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.prompt-icon-option--selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.prompt-config-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.prompt-config-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.prompt-config-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Settings Tab */
+.settings-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-section h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.settings-toggle span {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--line);
+  transition: background-color 200ms ease;
+}
+
+.toggle-switch:hover:not(:disabled) {
+  background: var(--line-soft);
+}
+
+.toggle-switch--active {
+  background: var(--accent);
+}
+
+.toggle-switch--active:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 200ms ease;
+}
+
+.toggle-switch--active .toggle-thumb {
+  transform: translateX(20px);
+}

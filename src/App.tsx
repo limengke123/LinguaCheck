@@ -591,18 +591,7 @@ function App() {
             />
           </div>
 
-          <div className="action-grid-header">
-            <span className="action-grid-title">Actions</span>
-            <button
-              className="icon-button"
-              type="button"
-              onClick={() => setActiveConfigTab('prompts')}
-              title="Configure prompts"
-              aria-label="Configure prompts"
-            >
-              <SettingsIcon size={15} strokeWidth={2} />
-            </button>
-          </div>
+          <span className="action-grid-title">Actions</span>
           <div
             ref={actionGridRef}
             className="action-grid"
