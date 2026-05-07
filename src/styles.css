@@ -642,6 +642,11 @@ textarea:focus-visible {
   min-width: 0;
 }
 
+.result-meta {
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .collapse-button {
   display: grid;
   width: 28px;
