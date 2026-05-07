@@ -1,4 +1,24 @@
-export type ActionType = "explain" | "enToZh" | "zhToEn" | "polish" | "check";
+export type ActionType =
+  | "explain"
+  | "enToZh"
+  | "zhToEn"
+  | "polish"
+  | "check"
+  | "correct_grammar"
+  | "translate_en"
+  | "translate_zh"
+  | "explain_meaning"
+  | "rewrite_polish";
+
+export type PromptAction = {
+  id: string; // UUID for custom, type string for default
+  type: ActionType;
+  label: string; // max 20 chars
+  shortLabel: string;
+  description: string;
+  systemPrompt: string; // the prefix that wraps user input
+  iconName?: string; // lucide-react icon name (optional)
+};
 
 export type ProviderConfig = {
   id: string;

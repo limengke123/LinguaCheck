@@ -1,10 +1,12 @@
-import type { AssistantResult, ProviderConfig, Settings } from "./types";
+import type { AssistantResult, ProviderConfig, PromptAction, Settings } from "./types";
+import { defaultPromptActions } from "./prompts";
 
 const DB_NAME = "linguacheck";
 const DB_VERSION = 1;
 const RESULTS_STORE = "results";
 
 export const SETTINGS_KEY = "linguacheck.settings";
+export const CUSTOM_PROMPTS_KEY = "linguacheck.customPrompts";
 
 const DEFAULT_PROVIDER_ID = "default-openai-compatible";
 
@@ -38,6 +40,49 @@ export function loadSettings(): Settings {
 
 export function saveSettings(settings: Settings): void {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(normalizeSettings(settings)));
+}
+
+export function loadPromptActions(): PromptAction[] {
+  const raw = localStorage.getItem(CUSTOM_PROMPTS_KEY);
+  const saved: PromptAction[] = raw ? JSON.parse(raw) : [];
+
+  // Merge: saved overrides defaults for same id, new ones added
+  const defaultMap = new Map(defaultPromptActions.map((p) => [p.id, p]));
+  const savedMap = new Map(saved.map((p) => [p.id, p]));
+
+  const merged: PromptAction[] = [];
+  for (const defaultPrompt of defaultPromptActions) {
+    if (savedMap.has(defaultPrompt.id)) {
+      merged.push(savedMap.get(defaultPrompt.id)!);
+    } else {
+      merged.push(defaultPrompt);
+    }
+  }
+  // Add any custom prompts not in defaults
+  for (const savedPrompt of saved) {
+    if (!defaultMap.has(savedPrompt.id)) {
+      merged.push(savedPrompt);
+    }
+  }
+  return merged;
+}
+
+export function savePromptActions(actions: PromptAction[]): void {
+  // Only save custom (non-default) prompts
+  const defaultIds = new Set(defaultPromptActions.map((p) => p.id));
+  const custom = actions.filter((p) => !defaultIds.has(p.id));
+  localStorage.setItem(CUSTOM_PROMPTS_KEY, JSON.stringify(custom));
+}
+
+export function createPromptAction(): PromptAction {
+  return {
+    id: crypto.randomUUID(),
+    type: "explain",
+    label: "New Action",
+    shortLabel: "New",
+    description: "Custom action",
+    systemPrompt: "You are a helpful assistant. ",
+  };
 }
 
 export function createProvider(index: number): ProviderConfig {

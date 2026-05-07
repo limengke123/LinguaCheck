@@ -237,6 +237,27 @@ textarea:focus-visible {
   }
 }
 
+.action-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.action-grid-header .icon-button {
+  opacity: 0.5;
+}
+
+.action-grid-header .icon-button:hover {
+  opacity: 1;
+}
+
+.action-grid-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+}
+
 .action-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

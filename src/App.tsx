@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { runPrompt, testProvider } from "./api";
-import { promptActions } from "./prompts";
-import { createProvider, loadResults, loadSettings, saveResult, saveSettings, deleteResult as dbDeleteResult, clearResults as dbClearResults } from "./storage";
+import { buildPrompt } from "./prompts";
+import type { PromptAction } from "./prompts";
+import { PromptConfigModal } from "./PromptConfigModal";
+import { createProvider, loadPromptActions, loadResults, loadSettings, savePromptActions, saveResult, saveSettings, deleteResult as dbDeleteResult, clearResults as dbClearResults } from "./storage";
 import type { ActionType, AssistantResult, ProviderConfig, Settings } from "./types";
 
 type ConnectionCheck = {
@@ -30,6 +32,8 @@ function App() {
   const [expandedResultIds, setExpandedResultIds] = useState<Set<string>>(() => new Set());
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   const [isProviderPanelOpen, setIsProviderPanelOpen] = useState(false);
+  const [isPromptConfigOpen, setIsPromptConfigOpen] = useState(false);
+  const [promptActions, setPromptActions] = useState<PromptAction[]>(() => loadPromptActions());
   const [connectionChecks, setConnectionChecks] = useState<Record<string, ConnectionCheck>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -231,7 +235,7 @@ function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [settings.providers, runningAction]);
+  }, [settings.providers, runningAction, promptActions]);
 
   async function handleAction(actionType: ActionType, selectionText?: string) {
     const trimmedInput = (selectionText ?? input).trim();
@@ -278,7 +282,7 @@ function App() {
     try {
       const output = await runPrompt(
         originalProvider,
-        action.buildPrompt(inputToUse),
+        buildPrompt(action, inputToUse),
         (chunk) => {
           setResults((current) =>
             current.map((r) =>
@@ -347,7 +351,7 @@ function App() {
     try {
       const output = await runPrompt(
         provider,
-        action.buildPrompt(sourceInput),
+        buildPrompt(action, sourceInput),
         (chunk) => {
           setResults((current) =>
             current.map((r) =>
@@ -565,6 +569,18 @@ function App() {
             />
           </div>
 
+          <div className="action-grid-header">
+            <span className="action-grid-title">Actions</span>
+            <button
+              className="icon-button"
+              type="button"
+              onClick={() => setIsPromptConfigOpen(true)}
+              title="Configure prompts"
+              aria-label="Configure prompts"
+            >
+              <SettingsIcon size={15} strokeWidth={2} />
+            </button>
+          </div>
           <div
             ref={actionGridRef}
             className="action-grid"
@@ -670,6 +686,17 @@ function App() {
           onSetDefaultProvider={setDefaultProvider}
           onTestProvider={(provider) => void handleTestProvider(provider)}
           onUpdateProvider={updateProvider}
+        />
+      ) : null}
+
+      {isPromptConfigOpen ? (
+        <PromptConfigModal
+          actions={promptActions}
+          onClose={() => setIsPromptConfigOpen(false)}
+          onSave={(actions) => {
+            setPromptActions(actions);
+            savePromptActions(actions);
+          }}
         />
       ) : null}
     </div>
