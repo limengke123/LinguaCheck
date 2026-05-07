@@ -231,6 +231,7 @@ function ResultCard({
   const [isEditing, setIsEditing] = useState(false);
   const [editedInput, setEditedInput] = useState(result.input);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const streamTailRef = useRef<HTMLDivElement>(null);
   const INPUT_PREVIEW_LENGTH = 200;
 
   const created = new Intl.DateTimeFormat(undefined, {
@@ -273,6 +274,17 @@ function ResultCard({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isEditing, editedInput, result.input, onRerun]);
 
+  useEffect(() => {
+    if (!expanded) {
+      setInputCollapsed(true);
+    }
+  }, [expanded]);
+
+  useEffect(() => {
+    if (!expanded || !isLoading || !result.output) return;
+    streamTailRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [expanded, isLoading, result.output]);
+
   return (
     <article
       className={
@@ -306,7 +318,7 @@ function ResultCard({
             const Icon = iconName ? (LucideIcons as unknown as Record<string, React.ElementType>)[iconName] : null;
             return Icon ? <Icon size={13} strokeWidth={2.2} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> : null;
           })()}
-          <span className="result-input-preview">{isLoading ? "加载中..." : result.input || "(empty)"}</span>
+          <span className="result-input-preview">{isLoading ? "思考中..." : result.input || "(empty)"}</span>
           <small>
             {result.actionLabel} · {created}
             {isLoading ? "" : ` · ${result.durationMs}ms`}
@@ -464,9 +476,20 @@ function ResultCard({
           ) : null}
 
           {result.status === "loading" ? (
-            <div className="result-loading">
-              <span className="loading-dots">正在输入</span>
-            </div>
+            <>
+              <div className="result-loading">
+                <span className="loading-core">思考中</span>
+                <span className="loading-dots" aria-hidden="true" />
+              </div>
+              {result.output ? (
+                <div className="markdown-block markdown-block--streaming">
+                  <div className="markdown-body">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.output}</ReactMarkdown>
+                    <div ref={streamTailRef} />
+                  </div>
+                </div>
+              ) : null}
+            </>
           ) : result.error ? (
             <div className="result-error">{result.error}</div>
           ) : (

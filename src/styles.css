@@ -621,10 +621,6 @@ textarea:focus-visible {
   margin-bottom: 0;
 }
 
-.result-card--collapsed .result-input-preview {
-  display: none;
-}
-
 .collapse-button,
 .result-title-button {
   border-radius: var(--radius);
@@ -979,26 +975,66 @@ textarea:focus-visible {
 }
 
 .result-card--loading {
-  border-color: rgba(99, 102, 241, 0.25);
-  background: var(--accent-soft);
+  border-color: color-mix(in oklab, var(--accent) 30%, var(--line));
+  background: color-mix(in oklab, var(--accent-soft) 28%, var(--surface));
 }
 
 .result-loading {
-  padding: 16px;
-  color: var(--muted);
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in oklab, var(--accent) 26%, var(--line-soft));
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface) 94%, transparent);
+  color: color-mix(in oklab, var(--accent) 66%, var(--ink));
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.loading-core {
+  position: relative;
+  font-weight: 650;
+}
+
+.loading-core::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -8px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateY(-50%);
+  opacity: 0.9;
+}
+
+.loading-dots {
+  min-width: 24px;
 }
 
 .loading-dots::after {
-  content: "";
-  animation: loading-dots 1.4s infinite;
+  content: "...";
+  display: inline-block;
+  animation: loading-dots 1s steps(4, end) infinite;
 }
 
 @keyframes loading-dots {
-  0% { content: ""; }
-  25% { content: "."; }
-  50% { content: ".."; }
-  75% { content: "..."; }
+  0% {
+    width: 0;
+    opacity: 0.3;
+  }
+  100% {
+    width: 1.5em;
+    opacity: 1;
+  }
+}
+
+.markdown-block--streaming {
+  margin-top: 10px;
+  border-color: color-mix(in oklab, var(--accent) 22%, var(--line-soft));
+  background: color-mix(in oklab, var(--surface) 96%, transparent);
 }
 
 .modal-backdrop {
