@@ -509,6 +509,11 @@ function App() {
     void dbClearResults();
   }
 
+  function handleRestore(input: string) {
+    setInput(input);
+    textareaRef.current?.focus();
+  }
+
   async function copyResultOutput(result: AssistantResult) {
     try {
       await navigator.clipboard.writeText(result.output || result.error || "");
@@ -601,6 +606,7 @@ function App() {
                   running={runningAction !== null}
                   onCopy={() => void copyResultOutput(result)}
                   onRerun={(newInput) => void handleRerun(result, newInput)}
+                  onRestore={(input) => handleRestore(input)}
                   onToggle={() => toggleResult(result.id)}
                   onDelete={() => deleteResult(result.id)}
                 />
@@ -835,6 +841,7 @@ function ResultCard({
   running,
   onCopy,
   onRerun,
+  onRestore,
   onToggle,
   onDelete,
 }: {
@@ -844,6 +851,7 @@ function ResultCard({
   running: boolean;
   onCopy: () => void;
   onRerun: (newInput?: string) => void;
+  onRestore: (input: string) => void;
   onToggle: () => void;
   onDelete: () => void;
 }) {
@@ -995,9 +1003,8 @@ function ResultCard({
               </div>
             ) : (
               <blockquote className="input-quote">
-                <button
+                <div
                   className="input-quote-header"
-                  type="button"
                   onClick={() => setInputCollapsed((c) => !c)}
                 >
                   <span>Input</span>
@@ -1006,21 +1013,36 @@ function ResultCard({
                       {inputCollapsed ? "Show more" : "Show less"}
                     </span>
                   ) : null}
-                </button>
+                  <div className="input-quote-header-actions">
+                    <button
+                      className="icon-button"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditedInput(result.input);
+                        setIsEditing(true);
+                      }}
+                      title="Edit input"
+                      aria-label="Edit input"
+                    >
+                      <Edit2 size={14} strokeWidth={2.2} />
+                    </button>
+                    <button
+                      className="icon-button"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRestore(result.input);
+                      }}
+                      title="Restore to main input"
+                      aria-label="Restore to main input"
+                    >
+                      <RotateCcw size={14} strokeWidth={2.2} />
+                    </button>
+                  </div>
+                </div>
                 <p className={`input-quote-text ${inputCollapsed && inputLong ? "input-quote-text--collapsed" : ""}`}>
                   {result.input}
-                  <button
-                    className="icon-button input-edit-inline-button"
-                    type="button"
-                    onClick={() => {
-                      setEditedInput(result.input);
-                      setIsEditing(true);
-                    }}
-                    title="Edit input"
-                    aria-label="Edit input"
-                  >
-                    <Edit2 size={14} strokeWidth={2.2} />
-                  </button>
                 </p>
               </blockquote>
             )

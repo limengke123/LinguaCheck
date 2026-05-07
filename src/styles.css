@@ -535,6 +535,17 @@ textarea:focus-visible {
   background: rgba(0, 0, 0, 0.03);
 }
 
+.input-quote-header-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.input-quote-header-actions .icon-button {
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
 .input-quote-toggle {
   color: var(--accent);
   font-size: 12px;
