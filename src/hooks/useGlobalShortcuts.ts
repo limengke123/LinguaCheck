@@ -51,6 +51,13 @@ export function useGlobalShortcuts({
           onOpenQuickInput();
           return;
         }
+        if (event.key === "Enter") {
+          if (runningAction === null && promptActions.length > 0) {
+            event.preventDefault();
+            onRunAction(promptActions[0].type);
+          }
+          return;
+        }
         const actionIndex = Number(event.key) - 1;
         if (actionIndex >= 0 && actionIndex < promptActions.length) {
           if (runningAction === null) {

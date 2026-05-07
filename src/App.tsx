@@ -101,6 +101,9 @@ function App() {
       return;
     }
     await runAction(actionType, trimmedInput);
+    if (!selectionText) {
+      setInput("");
+    }
   }
 
   async function handleQuickRun(actionType?: ActionType) {

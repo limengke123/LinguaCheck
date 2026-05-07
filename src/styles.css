@@ -621,6 +621,10 @@ textarea:focus-visible {
   margin-bottom: 0;
 }
 
+.result-card--collapsed .result-input-preview {
+  display: none;
+}
+
 .collapse-button,
 .result-title-button {
   border-radius: var(--radius);
