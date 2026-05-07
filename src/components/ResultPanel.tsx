@@ -322,17 +322,19 @@ function ResultCard({
           )}
         </button>
         <button className="result-title-button" type="button" onClick={onToggle}>
-          {(() => {
-            const iconName = result.iconName;
-            const Icon = iconName ? (LucideIcons as unknown as Record<string, React.ElementType>)[iconName] : null;
-            return Icon ? <Icon size={13} strokeWidth={2.2} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> : null;
-          })()}
           <span className="result-input-preview">{isLoading ? "思考中..." : result.input || "(empty)"}</span>
-          <small>
-            {result.actionLabel} · {created}
-            {isLoading ? "" : ` · ${result.durationMs}ms`}
-          </small>
         </button>
+        {(() => {
+          const iconName = result.iconName;
+          const Icon = iconName ? (LucideIcons as unknown as Record<string, React.ElementType>)[iconName] : null;
+          return (
+            <small className="result-meta">
+              {Icon ? <Icon size={13} strokeWidth={2.2} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> : null}
+              {result.actionLabel} · {created}
+              {isLoading ? "" : ` · ${result.durationMs}ms`}
+            </small>
+          );
+        })()}
         {!isLoading && (
           <div className="result-actions">
             {result.temporary && onPromoteTemporary ? (
