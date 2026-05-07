@@ -41,9 +41,9 @@ function App() {
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   type ConfigTab = 'provider' | 'prompts' | 'settings';
   const [activeConfigTab, setActiveConfigTab] = useState<ConfigTab | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  const [darkMode, setDarkMode] = useState<'light' | 'dark' | 'system'>(() => {
     const saved = localStorage.getItem('linguacheck.darkMode');
-    return saved ? JSON.parse(saved) : false;
+    return (saved as 'light' | 'dark' | 'system') || 'system';
   });
   const [promptActions, setPromptActions] = useState<PromptAction[]>(() => loadPromptActions());
   const [connectionChecks, setConnectionChecks] = useState<Record<string, ConnectionCheck>>({});
@@ -67,13 +67,27 @@ function App() {
 
   // Apply dark mode class to html element
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+    const root = document.documentElement;
+    root.classList.remove('dark', 'light');
+    if (darkMode === 'dark' || (darkMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.add('light');
     }
-    localStorage.setItem('linguacheck.darkMode', JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
+    localStorage.setItem('linguacheck.darkMode', darkMode);
+  }, [darkMode]);
+
+  // Listen to system preference changes
+  useEffect(() => {
+    if (darkMode !== 'system') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => {
+      document.documentElement.classList.remove('dark', 'light');
+      document.documentElement.classList.add(mq.matches ? 'dark' : 'light');
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [darkMode]);
 
   // Auto-focus on mount
   useEffect(() => {
@@ -693,6 +707,8 @@ function App() {
           settings={settings}
           promptActions={promptActions}
           activeProvider={activeProvider}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
           onTabChange={setActiveConfigTab}
           onAddProvider={addProvider}
           onRemoveProvider={removeProvider}
@@ -804,7 +820,7 @@ function ProviderPanel({
                   </div>
                 </div>
 
-                <div className="provider-fields">
+                <div className="prompt-template-select">
                   <label>
                     <span>Base URL</span>
                     <input
@@ -880,6 +896,8 @@ function ConfigPanel({
   settings,
   promptActions,
   activeProvider,
+  darkMode,
+  setDarkMode,
   onTabChange,
   onAddProvider,
   onRemoveProvider,
@@ -895,6 +913,8 @@ function ConfigPanel({
   settings: Settings;
   promptActions: PromptAction[];
   activeProvider: ProviderConfig | undefined;
+  darkMode: 'light' | 'dark' | 'system';
+  setDarkMode: (mode: 'light' | 'dark' | 'system') => void;
   onTabChange: (tab: 'provider' | 'prompts' | 'settings' | null) => void;
   onAddProvider: () => void;
   onRemoveProvider: (providerId: string) => void;
@@ -913,23 +933,10 @@ function ConfigPanel({
   const [generateDescription, setGenerateDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('linguacheck.darkMode');
-    return saved ? JSON.parse(saved) : false;
-  });
 
   useEffect(() => {
     setLocalActions(promptActions);
   }, [promptActions]);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('linguacheck.darkMode', JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
 
   const tabs: { id: 'provider' | 'prompts' | 'settings'; label: string }[] = [
     { id: 'provider', label: 'Provider' },
@@ -1120,7 +1127,7 @@ function ConfigPanel({
                         </div>
                       </div>
 
-                      <div className="provider-fields">
+                      <div className="prompt-template-select">
                         <label>
                           <span>Base URL</span>
                           <input
@@ -1260,7 +1267,7 @@ function ConfigPanel({
                             <label className="prompt-config-field">
                               <span>Quick Template</span>
                               <select
-                                className="provider-fields"
+                                className="prompt-template-select"
                                 value=""
                                 onChange={(e) => {
                                   const tmpl = SYSTEM_PROMPT_TEMPLATES[Number(e.target.value)];
@@ -1503,18 +1510,40 @@ function ConfigPanel({
             <div className="settings-tab-content">
               <div className="settings-section">
                 <h3>Appearance</h3>
-                <label className="settings-toggle">
-                  <span>Dark Mode</span>
-                  <button
-                    type="button"
-                    className={`toggle-switch ${isDarkMode ? 'toggle-switch--active' : ''}`}
-                    onClick={() => setIsDarkMode(!isDarkMode)}
-                    role="switch"
-                    aria-checked={isDarkMode}
-                  >
-                    <span className="toggle-thumb" />
-                  </button>
-                </label>
+                <div className="dark-mode-selector">
+                  <div className="dark-mode-options" role="radiogroup" aria-label="Theme">
+                    <button
+                      type="button"
+                      className={`dark-mode-option ${darkMode === 'light' ? 'dark-mode-option--active' : ''}`}
+                      onClick={() => setDarkMode('light')}
+                      role="radio"
+                      aria-checked={darkMode === 'light'}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                      Light
+                    </button>
+                    <button
+                      type="button"
+                      className={`dark-mode-option ${darkMode === 'dark' ? 'dark-mode-option--active' : ''}`}
+                      onClick={() => setDarkMode('dark')}
+                      role="radio"
+                      aria-checked={darkMode === 'dark'}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                      Dark
+                    </button>
+                    <button
+                      type="button"
+                      className={`dark-mode-option ${darkMode === 'system' ? 'dark-mode-option--active' : ''}`}
+                      onClick={() => setDarkMode('system')}
+                      role="radio"
+                      aria-checked={darkMode === 'system'}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                      System
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1527,7 +1556,7 @@ function ConfigPanel({
               type="button"
               onClick={handleSaveAndClose}
             >
-              Done
+              Save
             </button>
           </div>
         )}
