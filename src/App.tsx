@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
+  Edit2,
   RotateCcw,
   Settings as SettingsIcon,
   Trash2,
@@ -239,10 +240,11 @@ function App() {
     await runAction(actionType, trimmedInput, activeProvider);
   }
 
-  async function handleRerun(result: AssistantResult) {
+  async function handleRerun(result: AssistantResult, newInput?: string) {
     const originalProvider =
       settings.providers.find((provider) => provider.id === result.providerId) ?? activeProvider;
-    if (!result.input.trim() || !originalProvider) {
+    const inputToUse = newInput ?? result.input;
+    if (!inputToUse.trim() || !originalProvider) {
       return;
     }
 
@@ -258,6 +260,7 @@ function App() {
     // Update existing card to loading state
     const loadingResult: AssistantResult = {
       ...result,
+      input: inputToUse,
       output: "",
       error: undefined,
       durationMs: 0,
@@ -271,7 +274,7 @@ function App() {
     try {
       const output = await runPrompt(
         originalProvider,
-        action.buildPrompt(result.input),
+        action.buildPrompt(inputToUse),
         (chunk) => {
           setResults((current) =>
             current.map((r) =>
@@ -837,11 +840,13 @@ function ResultCard({
   result: AssistantResult;
   running: boolean;
   onCopy: () => void;
-  onRerun: () => void;
+  onRerun: (newInput?: string) => void;
   onToggle: () => void;
   onDelete: () => void;
 }) {
   const [inputCollapsed, setInputCollapsed] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedInput, setEditedInput] = useState(result.input);
   const INPUT_PREVIEW_LENGTH = 200;
 
   const created = new Intl.DateTimeFormat(undefined, {
@@ -889,16 +894,60 @@ function ResultCard({
         </button>
         {!isLoading && (
           <div className="result-actions">
-            <button
-              className="icon-button result-icon-button"
-              type="button"
-              onClick={onRerun}
-              disabled={running}
-              title="Re-run"
-              aria-label="Re-run"
-            >
-              <RotateCcw size={15} strokeWidth={2.2} />
-            </button>
+            {isEditing ? (
+              <>
+                <button
+                  className="icon-button result-icon-button"
+                  type="button"
+                  onClick={() => {
+                    setEditedInput(result.input);
+                    setIsEditing(false);
+                  }}
+                  title="Cancel"
+                  aria-label="Cancel edit"
+                >
+                  <X size={15} strokeWidth={2.2} />
+                </button>
+                <button
+                  className="icon-button result-icon-button"
+                  type="button"
+                  onClick={() => {
+                    setIsEditing(false);
+                    onRerun(editedInput);
+                  }}
+                  disabled={running}
+                  title="Re-run with new input"
+                  aria-label="Re-run with new input"
+                >
+                  <RotateCcw size={15} strokeWidth={2.2} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="icon-button result-icon-button"
+                  type="button"
+                  onClick={() => {
+                    setEditedInput(result.input);
+                    setIsEditing(true);
+                  }}
+                  title="Edit input"
+                  aria-label="Edit input"
+                >
+                  <Edit2 size={15} strokeWidth={2.2} />
+                </button>
+                <button
+                  className="icon-button result-icon-button"
+                  type="button"
+                  onClick={() => onRerun()}
+                  disabled={running}
+                  title="Re-run"
+                  aria-label="Re-run"
+                >
+                  <RotateCcw size={15} strokeWidth={2.2} />
+                </button>
+              </>
+            )}
             <button
               className="icon-button result-icon-button"
               type="button"
@@ -915,23 +964,57 @@ function ResultCard({
       {expanded ? (
         <>
           {result.input ? (
-            <blockquote className="input-quote">
-              <button
-                className="input-quote-header"
-                type="button"
-                onClick={() => setInputCollapsed((c) => !c)}
-              >
-                <span>Input</span>
-                {inputLong ? (
-                  <span className="input-quote-toggle">
-                    {inputCollapsed ? "Show more" : "Show less"}
-                  </span>
-                ) : null}
-              </button>
-              <p className={`input-quote-text ${inputCollapsed && inputLong ? "input-quote-text--collapsed" : ""}`}>
-                {result.input}
-              </p>
-            </blockquote>
+            isEditing ? (
+              <div className="input-edit-area">
+                <textarea
+                  className="input-edit-textarea"
+                  value={editedInput}
+                  onChange={(e) => setEditedInput(e.target.value)}
+                  rows={Math.max(3, editedInput.split("\n").length)}
+                />
+                <div className="input-edit-actions">
+                  <button
+                    className="button button-ghost button-compact"
+                    type="button"
+                    onClick={() => {
+                      setEditedInput(result.input);
+                      setIsEditing(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="button button-primary button-compact"
+                    type="button"
+                    onClick={() => {
+                      setIsEditing(false);
+                      onRerun(editedInput);
+                    }}
+                    disabled={running}
+                  >
+                    Re-run
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <blockquote className="input-quote">
+                <button
+                  className="input-quote-header"
+                  type="button"
+                  onClick={() => setInputCollapsed((c) => !c)}
+                >
+                  <span>Input</span>
+                  {inputLong ? (
+                    <span className="input-quote-toggle">
+                      {inputCollapsed ? "Show more" : "Show less"}
+                    </span>
+                  ) : null}
+                </button>
+                <p className={`input-quote-text ${inputCollapsed && inputLong ? "input-quote-text--collapsed" : ""}`}>
+                  {result.input}
+                </p>
+              </blockquote>
+            )
           ) : null}
 
           {result.status === "loading" ? (
