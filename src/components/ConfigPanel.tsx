@@ -15,6 +15,7 @@ import {
   Trash2,
   Wand2,
   X,
+  Power,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeSelector } from "./ThemeSelector";
@@ -104,6 +105,14 @@ export function ConfigPanel({
     { label: "改写润色", prompt: "You are a writing assistant. Rewrite the following text to make it more polished, natural, and well-structured while keeping the same meaning:\n\n" },
     { label: "空白", prompt: "You are a helpful assistant. " },
   ];
+
+  function toggleEnabled(id: string) {
+    setLocalActions((current) =>
+      current.map((item) =>
+        item.id === id ? { ...item, enabled: !item.enabled } : item,
+      ),
+    );
+  }
 
   function getIconByName(name: string) {
     return ICON_OPTIONS.find((o) => o.name === name)?.icon ?? SpellCheck;
@@ -469,6 +478,15 @@ export function ConfigPanel({
                             </small>
                           </div>
                           <div className="prompt-config-view-actions">
+                            <button
+                              className={`icon-button result-icon-button ${item.enabled === false ? "result-icon-button--disabled" : ""}`}
+                              type="button"
+                              onClick={() => toggleEnabled(item.id)}
+                              title={item.enabled === false ? "Enable" : "Disable"}
+                              aria-label={item.enabled === false ? "Enable" : "Disable"}
+                            >
+                              <Power size={14} strokeWidth={2.2} />
+                            </button>
                             <button className="icon-button result-icon-button" type="button" onClick={() => startEdit(item)} title="Edit" aria-label="Edit">
                               <Edit2 size={14} strokeWidth={2.2} />
                             </button>

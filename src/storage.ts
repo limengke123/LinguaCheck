@@ -97,7 +97,12 @@ export function loadPromptActions(): PromptAction[] {
 export function savePromptActions(actions: PromptAction[]): void {
   // Only save custom (non-default) prompts
   const defaultIds = new Set(defaultPromptActions.map((p) => p.id));
-  const custom = actions.filter((p) => !defaultIds.has(p.id));
+  const custom = actions
+    .filter((p) => !defaultIds.has(p.id))
+    .map((p) => {
+      const { icon, ...rest } = p;
+      return rest;
+    });
   localStorage.setItem(CUSTOM_PROMPTS_KEY, JSON.stringify(custom));
 }
 
@@ -109,6 +114,7 @@ export function createPromptAction(): PromptAction {
     shortLabel: "New",
     description: "Custom action",
     systemPrompt: "You are a helpful assistant. ",
+    enabled: true,
   };
 }
 

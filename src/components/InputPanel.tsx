@@ -68,7 +68,7 @@ export function InputPanel({
 
       <span className="action-grid-title">Actions</span>
       <div className="action-grid" aria-label="Prompt actions">
-        {promptActions.map((action, index) => {
+        {promptActions.filter((a) => a.enabled !== false).map((action, index) => {
             const Icon = getIcon(action.iconName);
             return (
               <button

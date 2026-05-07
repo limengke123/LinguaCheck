@@ -22,6 +22,7 @@ export type PromptAction = {
   systemPrompt: string; // the prefix that wraps user input
   icon?: LucideIcon; // lucide-react icon component
   iconName?: string; // lucide-react icon name string (for serialization)
+  enabled?: boolean; // defaults to true
 };
 
 export type ProviderConfig = {
