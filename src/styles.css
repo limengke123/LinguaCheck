@@ -793,10 +793,7 @@ textarea:focus-visible {
 }
 
 .input-quote-text--collapsed {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: none;
 }
 
 .input-edit-area {
