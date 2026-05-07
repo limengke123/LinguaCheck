@@ -115,52 +115,6 @@ Yes 或 No，并用中文补一句判断。
 """
 `,
   },
-  // New configurable prompts from requirements
-  {
-    id: "correct_grammar",
-    type: "correct_grammar",
-    label: "纠正语法",
-    shortLabel: "纠正语法",
-    description: "Correct Grammar",
-    systemPrompt:
-      "You are an English teacher. Correct the grammar of the following text without changing its meaning. Output only the corrected text:\n\n",
-  },
-  {
-    id: "translate_en",
-    type: "translate_en",
-    label: "翻译英文",
-    shortLabel: "翻译英文",
-    description: "Translate to English",
-    systemPrompt:
-      "You are a translator. Translate the following Chinese text to English. Output only the translation:\n\n",
-  },
-  {
-    id: "translate_zh",
-    type: "translate_zh",
-    label: "翻译中文",
-    shortLabel: "翻译中文",
-    description: "Translate to Chinese",
-    systemPrompt:
-      "You are a translator. Translate the following English text to Chinese. Output only the translation:\n\n",
-  },
-  {
-    id: "explain_meaning",
-    type: "explain_meaning",
-    label: "解释意思",
-    shortLabel: "解释意思",
-    description: "Explain Meaning",
-    systemPrompt:
-      "You are an English teacher. Explain the meaning of the following text in Chinese, including key vocabulary and grammar points:\n\n",
-  },
-  {
-    id: "rewrite_polish",
-    type: "rewrite_polish",
-    label: "改写润色",
-    shortLabel: "改写润色",
-    description: "Rewrite & Polish",
-    systemPrompt:
-      "You are a writing assistant. Rewrite the following text to make it more polished, natural, and well-structured while keeping the same meaning:\n\n",
-  },
 ];
 
 export function buildPrompt(action: PromptAction, input: string): string {

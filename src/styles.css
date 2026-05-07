@@ -5,6 +5,7 @@
   --green: #2d7a4f;
   --red: #b91c1c;
   --ink: #1e1e22;
+  --ink-light: #3a3a3c;
   --muted: #71717a;
   --soft: #f4f4f5;
   --surface: #ffffff;
@@ -26,6 +27,25 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.dark {
+  color-scheme: dark;
+  --blue: #7b9fc6;
+  --blue-hover: #8aafd4;
+  --green: #4da872;
+  --red: #f87171;
+  --ink: #e4e4e7;
+  --ink-light: #d4d4d8;
+  --muted: #a1a1aa;
+  --soft: #18181b;
+  --surface: #27272a;
+  --surface-strong: #1f1f23;
+  --line: #3f3f46;
+  --line-soft: #52525b;
+  --code: #1f1f23;
+  --accent: #818cf8;
+  --accent-soft: #1e1b4b;
 }
 
 * {
