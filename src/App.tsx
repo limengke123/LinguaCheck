@@ -600,7 +600,7 @@ function App() {
                   result={result}
                   running={runningAction !== null}
                   onCopy={() => void copyResultOutput(result)}
-                  onRerun={() => void handleRerun(result)}
+                  onRerun={(newInput) => void handleRerun(result, newInput)}
                   onToggle={() => toggleResult(result.id)}
                   onDelete={() => deleteResult(result.id)}
                 />
