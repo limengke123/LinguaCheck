@@ -83,6 +83,15 @@ function App() {
       setQuickInputValue(input);
       setShowQuickInput(true);
     },
+    onTogglePreviewMode: () => {
+      setPreviewMode((current) => {
+        const next = !current;
+        if (next) {
+          setPreviewInputCollapsed(true);
+        }
+        return next;
+      });
+    },
   });
 
   useEffect(() => {

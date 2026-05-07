@@ -12,6 +12,7 @@ type UseGlobalShortcutsArgs = {
   onSetActiveProvider: (providerId: string) => void;
   focusTextarea: () => void;
   onOpenQuickInput: () => void;
+  onTogglePreviewMode: () => void;
 };
 
 export function useGlobalShortcuts({
@@ -24,6 +25,7 @@ export function useGlobalShortcuts({
   onSetActiveProvider,
   focusTextarea,
   onOpenQuickInput,
+  onTogglePreviewMode,
 }: UseGlobalShortcutsArgs) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -49,6 +51,14 @@ export function useGlobalShortcuts({
         if (event.code === "KeyP" || event.key.toLowerCase() === "p") {
           event.preventDefault();
           onOpenQuickInput();
+          return;
+        }
+      }
+
+      if (commandPressed && event.shiftKey && !event.altKey) {
+        if (event.code === "KeyP" || event.key.toLowerCase() === "p") {
+          event.preventDefault();
+          onTogglePreviewMode();
           return;
         }
         if (event.key === "Enter") {
@@ -95,5 +105,6 @@ export function useGlobalShortcuts({
     onSetActiveProvider,
     focusTextarea,
     onOpenQuickInput,
+    onTogglePreviewMode,
   ]);
 }
