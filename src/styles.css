@@ -600,7 +600,20 @@ textarea:focus-visible {
 
 .result-card--temporary {
   border-style: dashed;
-  opacity: 0.85;
+  border-color: var(--accent);
+  opacity: 0.9;
+  animation: temp-pulse 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes temp-pulse {
+  0% {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+  100% {
+    border-color: color-mix(in oklab, var(--accent) 45%, var(--muted));
+    box-shadow: 0 0 8px 1px color-mix(in oklab, var(--accent) 20%, transparent);
+  }
 }
 
 .result-card-header {
