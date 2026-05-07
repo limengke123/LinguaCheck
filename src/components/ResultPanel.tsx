@@ -149,17 +149,17 @@ export function ResultPanel({
             className={`button button-ghost button-compact ${previewMode ? "button--active" : ""}`}
             type="button"
             onClick={onTogglePreviewMode}
-            title="Preview mode"
+            title="Preview"
           >
-            Preview
+            Preview <kbd className="action-kbd">⌘P</kbd>
           </button>
           <button
             className="button button-ghost button-compact"
             type="button"
             onClick={onOpenQuickInput}
-            title="⌘P"
+            title="快速执行"
           >
-            ⌘P 快速执行
+            快速执行 <kbd className="action-kbd">⌘O</kbd>
           </button>
           <button
             className="button button-ghost button-compact"
@@ -323,7 +323,15 @@ function ResultCard({
         </button>
         <div className="result-title-group">
           <button className="result-title-button" type="button" onClick={onToggle}>
-            <span className="result-input-preview">{isLoading ? "思考中..." : result.input || "(empty)"}</span>
+            <span className="result-input-preview">
+              {isLoading ? (
+                <>
+                  思考中<span className="loading-dots-animated"><span className="dot">.</span><span className="dot">.</span><span className="dot">.</span><span className="dot">.</span><span className="dot">.</span></span>
+                </>
+              ) : (
+                result.input || "(empty)"
+              )}
+            </span>
           </button>
           {(() => {
             const iconName = result.iconName;
@@ -501,10 +509,6 @@ function ResultCard({
 
           {result.status === "loading" ? (
             <>
-              <div className="result-loading">
-                <span className="loading-core">思考中</span>
-                <span className="loading-dots" aria-hidden="true" />
-              </div>
               {result.output ? (
                 <div className="markdown-block markdown-block--streaming">
                   <div className="markdown-body">

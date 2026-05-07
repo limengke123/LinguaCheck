@@ -18,9 +18,13 @@ function App() {
   const [previewInputCollapsed, setPreviewInputCollapsed] = useState(false);
   const [showQuickInput, setShowQuickInput] = useState(false);
   const [quickInputValue, setQuickInputValue] = useState("");
+  const [quickInputFocusedIndex, setQuickInputFocusedIndex] = useState(-1);
+  const [quickInputHighlightedIndex, setQuickInputHighlightedIndex] = useState(0);
   type ConfigTab = 'provider' | 'prompts' | 'settings';
   const [activeConfigTab, setActiveConfigTab] = useState<ConfigTab | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const quickInputRef = useRef<HTMLInputElement>(null);
+  const quickInputRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const { darkMode, setDarkMode } = useThemeMode();
   const {
     settings,
@@ -100,6 +104,12 @@ function App() {
       setShowQuickInput(false);
     }
   }, [previewMode]);
+
+  useEffect(() => {
+    if (!showQuickInput) {
+      setQuickInputFocusedIndex(-1);
+    }
+  }, [showQuickInput]);
 
   useEffect(() => {
     const compactOutput = localStorage.getItem("linguacheck.compactOutput") === "1";
@@ -264,6 +274,7 @@ function App() {
               onChange={(event) => setQuickInputValue(event.target.value)}
               placeholder="输入文本后回车，自动选择合适的 Prompt"
               autoFocus
+              ref={quickInputRef}
               onKeyDown={(event) => {
                 if (event.key === "Escape") {
                   event.preventDefault();
@@ -273,29 +284,67 @@ function App() {
                   event.preventDefault();
                   void handleQuickRun();
                 }
+                if (event.key === "ArrowRight") {
+                  const target = event.target as HTMLInputElement;
+                  const cursorPos = target.selectionStart ?? 0;
+                  const maxPos = target.value.length;
+                  if (cursorPos === maxPos) {
+                    event.preventDefault();
+                    setQuickInputFocusedIndex(1);
+                    setQuickInputHighlightedIndex(1);
+                    quickInputRefs.current[1]?.focus();
+                  }
+                }
               }}
             />
             <div className="quick-input-spotlight-actions">
-              <button className="button button-ghost" type="button" onClick={() => setShowQuickInput(false)}>
-                取消
-              </button>
               <button
-                className="button button-primary"
+                className={`button button-primary ${quickInputHighlightedIndex === 0 ? "button--active" : ""}`}
                 type="button"
                 onClick={() => void handleQuickRun()}
                 disabled={!quickInputValue.trim() || runningAction !== null}
+                ref={(el) => { quickInputRefs.current[0] = el; }}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowRight") {
+                    e.preventDefault();
+                    setQuickInputFocusedIndex(1);
+                    setQuickInputHighlightedIndex(1);
+                    quickInputRefs.current[1]?.focus();
+                  }
+                  if (e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    setQuickInputFocusedIndex(-1);
+                    setQuickInputHighlightedIndex(0);
+                    quickInputRef.current?.focus();
+                  }
+                }}
               >
                 <Search size={14} strokeWidth={2.4} />
                 搜索
               </button>
-              {promptActions.slice(0, 3).map((action) => (
+              {promptActions.slice(0, 3).map((action, idx) => (
                 <button
                   key={action.id}
-                  className="button button-ghost button-compact"
+                  ref={(el) => { quickInputRefs.current[idx + 1] = el; }}
+                  className={`button button-ghost button-compact ${quickInputHighlightedIndex === idx + 1 ? "button--active" : ""}`}
                   type="button"
                   onClick={() => void handleQuickRun(action.type)}
                   disabled={!quickInputValue.trim() || runningAction !== null}
                   title={action.label}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowRight" && idx < 2) {
+                      e.preventDefault();
+                      setQuickInputFocusedIndex(idx + 2);
+                      setQuickInputHighlightedIndex(idx + 2);
+                      quickInputRefs.current[idx + 2]?.focus();
+                    }
+                    if (e.key === "ArrowLeft") {
+                      e.preventDefault();
+                      setQuickInputFocusedIndex(-1);
+                      setQuickInputHighlightedIndex(0);
+                      quickInputRef.current?.focus();
+                    }
+                  }}
                 >
                   <CornerDownLeft size={13} strokeWidth={2.3} />
                   {action.shortLabel}
