@@ -34,14 +34,6 @@ export function InputPanel({
 
   return (
     <section className="input-panel" aria-label="Input and actions">
-      <div className="hero-bar">
-        <div className="hero-title">
-          <Sparkles size={16} strokeWidth={2.2} />
-          <strong>LinguaCheck</strong>
-          <span>AI Writing Copilot</span>
-        </div>
-      </div>
-
       <div className="composer-shell">
         <textarea
           ref={textareaRef}
