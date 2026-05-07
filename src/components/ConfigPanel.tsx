@@ -1,10 +1,14 @@
 import {
   BookOpen,
   Check,
+  Command,
   Edit2,
+  Eye,
+  History,
   Languages,
   Loader2,
   MessageSquare,
+  PlusCircle,
   PenTool,
   Plus,
   SpellCheck,
@@ -71,6 +75,7 @@ export function ConfigPanel({
   const [generateDescription, setGenerateDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const [compactOutput, setCompactOutput] = useState(() => localStorage.getItem("linguacheck.compactOutput") === "1");
 
   useEffect(() => {
     setLocalActions(promptActions);
@@ -180,6 +185,8 @@ export function ConfigPanel({
   }
 
   function handleSaveAndClose() {
+    localStorage.setItem("linguacheck.compactOutput", compactOutput ? "1" : "0");
+    document.documentElement.classList.toggle("compact-output", compactOutput);
     onSavePromptActions(localActions);
     onTabChange(null);
   }
@@ -230,7 +237,8 @@ export function ConfigPanel({
                     onChange={onSetDefaultProvider}
                   />
                 </label>
-                <button className="button button-ghost" type="button" onClick={onAddProvider}>
+                <button className="button button-ghost button-compact provider-add-button" type="button" onClick={onAddProvider}>
+                  <PlusCircle size={14} strokeWidth={2.4} />
                   Add Provider
                 </button>
               </div>
@@ -263,6 +271,7 @@ export function ConfigPanel({
                         <label>
                           <span>Base URL</span>
                           <input
+                            className="provider-field-input"
                             type="url"
                             value={provider.baseUrl}
                             onChange={(event) => onUpdateProvider(provider.id, { baseUrl: event.target.value })}
@@ -272,6 +281,7 @@ export function ConfigPanel({
                         <label>
                           <span>Model</span>
                           <input
+                            className="provider-field-input"
                             value={provider.model}
                             onChange={(event) => onUpdateProvider(provider.id, { model: event.target.value })}
                             placeholder="Qwen3.6-35B-A3B-4bit"
@@ -280,6 +290,7 @@ export function ConfigPanel({
                         <label>
                           <span>API Key</span>
                           <input
+                            className="provider-field-input"
                             type="password"
                             value={provider.apiKey}
                             onChange={(event) => onUpdateProvider(provider.id, { apiKey: event.target.value })}
@@ -568,6 +579,39 @@ export function ConfigPanel({
               <div className="settings-section">
                 <h3>Appearance</h3>
                 <ThemeSelector value={darkMode} onChange={setDarkMode} />
+              </div>
+              <div className="settings-section settings-info-grid">
+                <article className="settings-info-card">
+                  <div className="settings-info-head">
+                    <Eye size={14} strokeWidth={2.2} />
+                    <strong>Output View</strong>
+                  </div>
+                  <p>更紧凑地展示输出卡片，减少视觉间距。</p>
+                  <label className="settings-inline-toggle">
+                    <input
+                      type="checkbox"
+                      checked={compactOutput}
+                      onChange={(event) => setCompactOutput(event.target.checked)}
+                    />
+                    <span>Compact output card</span>
+                  </label>
+                </article>
+                <article className="settings-info-card">
+                  <div className="settings-info-head">
+                    <Command size={14} strokeWidth={2.2} />
+                    <strong>Shortcuts</strong>
+                  </div>
+                  <p>
+                    <kbd>Cmd/Ctrl + P</kbd> 快速输入, <kbd>Cmd/Ctrl + 1~9</kbd> 运行动作。
+                  </p>
+                </article>
+                <article className="settings-info-card">
+                  <div className="settings-info-head">
+                    <History size={14} strokeWidth={2.2} />
+                    <strong>Data</strong>
+                  </div>
+                  <p>历史结果保存在本地浏览器存储中，可随时在 Output 区清理。</p>
+                </article>
               </div>
             </div>
           )}

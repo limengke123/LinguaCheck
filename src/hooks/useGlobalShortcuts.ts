@@ -6,7 +6,6 @@ type UseGlobalShortcutsArgs = {
   promptActions: PromptAction[];
   providers: ProviderConfig[];
   runningAction: ActionType | null;
-  previewMode: boolean;
   onRunAction: (type: ActionType) => void;
   onSetInputFromClipboard: (text: string) => void;
   onClearInput: () => void;
@@ -19,7 +18,6 @@ export function useGlobalShortcuts({
   promptActions,
   providers,
   runningAction,
-  previewMode,
   onRunAction,
   onSetInputFromClipboard,
   onClearInput,
@@ -29,7 +27,10 @@ export function useGlobalShortcuts({
 }: UseGlobalShortcutsArgs) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key === "v" && !event.shiftKey && !event.altKey) {
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const commandPressed = isMac ? event.metaKey : event.ctrlKey;
+
+      if (commandPressed && event.key === "v" && !event.shiftKey && !event.altKey) {
         const target = event.target as HTMLElement;
         if (target.tagName !== "TEXTAREA" && target.tagName !== "INPUT") {
           event.preventDefault();
@@ -44,8 +45,8 @@ export function useGlobalShortcuts({
         }
       }
 
-      if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
-        if (event.key.toLowerCase() === "p" && previewMode) {
+      if (commandPressed && !event.altKey && !event.shiftKey) {
+        if (event.key.toLowerCase() === "p") {
           event.preventDefault();
           onOpenQuickInput();
           return;
@@ -66,7 +67,7 @@ export function useGlobalShortcuts({
         }
       }
 
-      if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
+      if (commandPressed && !event.altKey && !event.shiftKey) {
         const index = Number(event.key) - 1;
         if (index >= 0 && index < providers.length) {
           event.preventDefault();
@@ -81,7 +82,6 @@ export function useGlobalShortcuts({
     promptActions,
     providers,
     runningAction,
-    previewMode,
     onRunAction,
     onSetInputFromClipboard,
     onClearInput,

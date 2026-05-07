@@ -1,6 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
+  Circle,
   ChevronDown,
   ChevronRight,
   Copy,
@@ -74,14 +75,20 @@ export function ResultPanel({
 }: ResultPanelProps) {
   const statusOptions = [
     { value: "all", label: "全部" },
-    { value: "done", label: "成功" },
-    { value: "loading", label: "进行中" },
-    { value: "error", label: "错误" },
+    { value: "done", label: "完成" },
+    { value: "loading", label: "运行" },
+    { value: "error", label: "失败" },
   ];
 
   return (
     <section className="output-panel" aria-label="Output cards">
       <div className="result-toolbar">
+        {previewMode ? (
+          <span className="preview-mode-pill">
+            <Circle size={8} />
+            Preview
+          </span>
+        ) : null}
         <label className="search-input">
           <Search size={14} strokeWidth={2.4} />
           <input
@@ -107,8 +114,9 @@ export function ResultPanel({
             <p>输入文本并选择一个动作，结果会以 Markdown 卡片保留在这里。你也可以通过上方搜索和状态筛选快速定位历史记录。</p>
           </div>
         ) : (
-          filteredResults.map((result) => (
+          filteredResults.map((result, index) => (
             <ResultCard
+              index={index + 1}
               copied={copiedResultId === result.id}
               expanded={expandedResultIds.has(result.id)}
               key={result.id}
@@ -155,9 +163,9 @@ export function ResultPanel({
                 className="button button-ghost button-compact"
                 type="button"
                 onClick={onOpenQuickInput}
-                title="Command + P"
+                title="⌘P"
               >
-                快速输入
+                ⌘P 快速执行
               </button>
             </>
           ) : null}
@@ -207,6 +215,7 @@ export function ResultPanel({
 }
 
 type ResultCardProps = {
+  index: number;
   copied: boolean;
   expanded: boolean;
   result: AssistantResult;
@@ -220,6 +229,7 @@ type ResultCardProps = {
 };
 
 function ResultCard({
+  index,
   copied,
   expanded,
   result,
@@ -248,7 +258,12 @@ function ResultCard({
 
   useEffect(() => {
     if (isEditing) {
-      editTextareaRef.current?.focus();
+      const textarea = editTextareaRef.current;
+      if (textarea) {
+        textarea.focus();
+        const caretPos = textarea.value.length;
+        textarea.setSelectionRange(caretPos, caretPos);
+      }
     }
   }, [isEditing]);
 
@@ -285,6 +300,7 @@ function ResultCard({
       }
     >
       <header className="result-card-header">
+        <span className="result-index">{index}</span>
         <button
           className="collapse-button"
           type="button"
@@ -409,8 +425,21 @@ function ResultCard({
               <blockquote className="input-quote">
                 <div className="input-quote-header" onClick={() => setInputCollapsed((v) => !v)}>
                   <span>Input</span>
-                  {inputLong ? <span className="input-quote-toggle">{inputCollapsed ? "Show more" : "Show less"}</span> : null}
                   <div className="input-quote-header-actions">
+                    {inputLong ? (
+                      <button
+                        className="icon-button"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInputCollapsed((v) => !v);
+                        }}
+                        title={inputCollapsed ? "Show more" : "Show less"}
+                        aria-label={inputCollapsed ? "Show more" : "Show less"}
+                      >
+                        {inputCollapsed ? <ChevronDown size={14} strokeWidth={2.2} /> : <ChevronRight size={14} strokeWidth={2.2} />}
+                      </button>
+                    ) : null}
                     <button
                       className="icon-button"
                       type="button"

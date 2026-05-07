@@ -98,10 +98,7 @@ textarea:focus-visible {
 
 .app-shell {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(99, 102, 241, 0.1), transparent 38%),
-    radial-gradient(circle at 85% 0%, rgba(14, 165, 233, 0.1), transparent 34%),
-    var(--soft);
+  background: var(--soft);
 }
 
 .workspace {
@@ -115,18 +112,6 @@ textarea:focus-visible {
 
 .workspace--preview-focused {
   grid-template-columns: minmax(0, 1fr);
-}
-
-.input-collapsed-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  background: color-mix(in oklab, var(--surface) 86%, transparent);
-  color: var(--muted);
 }
 
 .input-panel,
@@ -166,8 +151,8 @@ textarea:focus-visible {
 }
 
 .button {
-  min-height: 44px;
-  border-radius: var(--pill);
+  min-height: 40px;
+  border-radius: 10px;
   transition:
     transform 120ms ease,
     background-color 120ms ease,
@@ -177,7 +162,7 @@ textarea:focus-visible {
 }
 
 .button-primary {
-  padding: 0 18px;
+  padding: 0 14px;
   background: var(--blue);
   color: white;
 }
@@ -187,7 +172,7 @@ textarea:focus-visible {
 }
 
 .button-ghost {
-  padding: 0 16px;
+  padding: 0 12px;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
@@ -419,13 +404,15 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .search-input {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 38px;
   padding: 0 10px;
   border: 1px solid var(--line);
@@ -443,12 +430,30 @@ textarea:focus-visible {
 }
 
 .status-filter {
-  min-width: 110px;
+  min-width: 86px;
+  width: 86px;
+  flex: 0 0 86px;
 }
 
 .status-filter .select-trigger {
   min-height: 38px;
   border-radius: 999px;
+  font-size: 12px;
+  padding: 7px 10px;
+}
+
+.preview-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .result-list {
@@ -535,12 +540,7 @@ textarea:focus-visible {
   padding: 12px 14px;
   transition:
     border-color 140ms ease,
-    background-color 140ms ease,
-    transform 140ms ease;
-}
-
-.result-card:hover {
-  transform: translateY(-1px);
+    background-color 140ms ease;
 }
 
 .result-card--collapsed {
@@ -563,6 +563,20 @@ textarea:focus-visible {
   gap: 8px;
   min-height: 38px;
   margin-bottom: 10px;
+}
+
+.result-index {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-strong);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .result-card--collapsed .result-card-header {
@@ -703,12 +717,6 @@ textarea:focus-visible {
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-}
-
-.input-quote-toggle {
-  color: var(--accent);
-  font-size: 12px;
-  text-transform: none;
 }
 
 .input-quote-text {
@@ -958,6 +966,13 @@ textarea:focus-visible {
   backdrop-filter: blur(3px);
 }
 
+.modal-backdrop--spotlight {
+  place-items: start center;
+  padding-top: 10vh;
+  background: rgba(10, 10, 12, 0.24);
+  backdrop-filter: blur(12px);
+}
+
 .provider-panel {
   display: flex;
   width: min(920px, 100%);
@@ -1008,6 +1023,12 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.provider-add-button {
+  align-self: flex-end;
+  min-height: 34px;
+  padding: 0 12px;
+}
+
 .provider-default-row select,
 .provider-fields input,
 .provider-name-input {
@@ -1018,6 +1039,19 @@ textarea:focus-visible {
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
+}
+
+.provider-field-input {
+  border-radius: 10px;
+  border-color: color-mix(in oklab, var(--line) 82%, var(--accent));
+  background: color-mix(in oklab, var(--surface) 92%, var(--accent-soft));
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.provider-field-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+  outline: none;
 }
 
 .provider-default-row .select-trigger,
@@ -1157,8 +1191,12 @@ textarea:focus-visible {
   }
 
   .result-toolbar {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .settings-info-grid {
+    grid-template-columns: 1fr;
   }
 
   .main-input {
@@ -1347,7 +1385,7 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .prompt-config-view {
@@ -1518,6 +1556,63 @@ textarea:focus-visible {
   color: var(--ink);
 }
 
+.settings-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-info-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.settings-info-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+}
+
+.settings-info-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.settings-inline-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-light);
+  font-size: 12px;
+}
+
+.settings-inline-toggle input {
+  margin: 0;
+}
+
+.settings-info-card kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-strong);
+  font-size: 11px;
+}
+
+.compact-output .result-card {
+  padding: 9px 11px;
+}
+
+.compact-output .markdown-block {
+  padding: 10px;
+}
+
 .settings-toggle {
   display: flex;
   align-items: center;
@@ -1618,7 +1713,7 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
-  z-index: 200;
+  z-index: 320;
   overflow: hidden;
   animation: select-open 120ms ease;
 }
@@ -1703,6 +1798,10 @@ textarea:focus-visible {
   width: 100%;
 }
 
+.prompt-config-field .select-wrapper {
+  z-index: 12;
+}
+
 .provider-name-input,
 .provider-fields input {
   background: var(--surface);
@@ -1754,41 +1853,60 @@ textarea:focus-visible {
   color: var(--accent);
 }
 
-.quick-input-modal {
-  width: min(620px, calc(100vw - 32px));
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.2);
+.quick-input-spotlight {
+  width: min(760px, calc(100vw - 40px));
+  padding: 10px;
+  border: 1px solid color-mix(in oklab, var(--line) 75%, #fff);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--surface) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(130%);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.28);
 }
 
-.quick-input-header {
+.quick-input-spotlight-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.quick-input-header h3 {
-  margin: 0;
-  font-size: 16px;
-}
-
-.quick-input-textarea {
-  width: 100%;
-  min-height: 180px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--ink);
-  resize: vertical;
-}
-
-.quick-input-actions {
-  display: flex;
-  justify-content: flex-end;
   gap: 8px;
-  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.quick-input-spotlight-header h3 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.quick-input-shortcut {
+  margin-right: auto;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  background: color-mix(in oklab, var(--surface) 86%, transparent);
+}
+
+.quick-input-line {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface) 86%, transparent);
+  color: var(--ink);
+}
+
+.quick-input-line:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+.quick-input-spotlight-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
 }

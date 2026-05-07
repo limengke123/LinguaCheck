@@ -5,7 +5,7 @@ import type { ActionType } from "./types";
 import { InputPanel } from "./components/InputPanel";
 import { ResultPanel } from "./components/ResultPanel";
 import { ConfigPanel } from "./components/ConfigPanel";
-import { X } from "lucide-react";
+import { CornerDownLeft, Languages, X } from "lucide-react";
 import { useThemeMode } from "./hooks/useThemeMode";
 import { useProviderSettings } from "./hooks/useProviderSettings";
 import { useResultsWorkflow } from "./hooks/useResultsWorkflow";
@@ -77,7 +77,6 @@ function App() {
     onClearInput: () => setInput(""),
     onSetActiveProvider: setActiveProvider,
     focusTextarea: () => textareaRef.current?.focus(),
-    previewMode,
     onOpenQuickInput: () => {
       setQuickInputValue(input);
       setShowQuickInput(true);
@@ -91,12 +90,32 @@ function App() {
     }
   }, [previewMode]);
 
+  useEffect(() => {
+    const compactOutput = localStorage.getItem("linguacheck.compactOutput") === "1";
+    document.documentElement.classList.toggle("compact-output", compactOutput);
+  }, []);
+
   async function handleAction(actionType: ActionType, selectionText?: string) {
     const trimmedInput = (selectionText ?? input).trim();
     if (!trimmedInput || !activeProvider) {
       return;
     }
     await runAction(actionType, trimmedInput);
+  }
+
+  async function handleQuickRun(actionType?: ActionType) {
+    const source = quickInputValue.trim();
+    if (!source || !activeProvider || runningAction !== null) {
+      return;
+    }
+    const fallbackAction = promptActions.find((action) => action.type === "enToZh")?.type ?? promptActions[0]?.type;
+    const targetAction = actionType ?? fallbackAction;
+    if (!targetAction) {
+      return;
+    }
+    setShowQuickInput(false);
+    setQuickInputValue("");
+    await runAction(targetAction, source);
   }
 
   function handleRestore(input: string) {
@@ -136,18 +155,7 @@ function App() {
         </div>
       ) : null}
       <main className={`workspace ${previewMode && previewInputCollapsed ? "workspace--preview-focused" : ""}`}>
-        {previewMode && previewInputCollapsed ? (
-          <section className="input-collapsed-banner" aria-label="Input collapsed">
-            <span>Preview 模式已聚焦输出，按 ⌘P 可快速输入</span>
-            <button
-              className="button button-ghost button-compact"
-              type="button"
-              onClick={() => setPreviewInputCollapsed(false)}
-            >
-              展开输入区
-            </button>
-          </section>
-        ) : (
+        {previewMode && previewInputCollapsed ? null : (
           <InputPanel
             input={input}
             inputStats={inputStats}
@@ -235,46 +243,58 @@ function App() {
       ) : null}
 
       {showQuickInput ? (
-        <div className="modal-backdrop" onClick={(event) => event.target === event.currentTarget && setShowQuickInput(false)}>
-          <section className="quick-input-modal" role="dialog" aria-modal="true" aria-label="Quick input">
-            <header className="quick-input-header">
-              <h3>快速输入（Preview）</h3>
+        <div className="modal-backdrop modal-backdrop--spotlight" onClick={(event) => event.target === event.currentTarget && setShowQuickInput(false)}>
+          <section className="quick-input-spotlight" role="dialog" aria-modal="true" aria-label="Quick input">
+            <header className="quick-input-spotlight-header">
+              <h3>Quick Run</h3>
+              <span className="quick-input-shortcut">⌘P</span>
               <button className="icon-button" type="button" onClick={() => setShowQuickInput(false)} aria-label="Close quick input">
                 <X size={15} strokeWidth={2.4} />
               </button>
             </header>
-            <textarea
-              className="quick-input-textarea"
+            <input
+              className="quick-input-line"
               value={quickInputValue}
               onChange={(event) => setQuickInputValue(event.target.value)}
-              placeholder="输入临时文本，回车保存到主输入框（Shift+Enter 换行）"
+              placeholder="输入文本后回车，默认直接英译中"
               autoFocus
               onKeyDown={(event) => {
                 if (event.key === "Escape") {
                   event.preventDefault();
                   setShowQuickInput(false);
                 }
-                if (event.key === "Enter" && !event.shiftKey) {
+                if (event.key === "Enter") {
                   event.preventDefault();
-                  setInput(quickInputValue);
-                  setShowQuickInput(false);
+                  void handleQuickRun();
                 }
               }}
             />
-            <div className="quick-input-actions">
+            <div className="quick-input-spotlight-actions">
               <button className="button button-ghost" type="button" onClick={() => setShowQuickInput(false)}>
                 取消
               </button>
               <button
                 className="button button-primary"
                 type="button"
-                onClick={() => {
-                  setInput(quickInputValue);
-                  setShowQuickInput(false);
-                }}
+                onClick={() => void handleQuickRun()}
+                disabled={!quickInputValue.trim() || runningAction !== null}
               >
-                保存到输入区
+                <Languages size={14} strokeWidth={2.4} />
+                英译中
               </button>
+              {promptActions.slice(0, 3).map((action) => (
+                <button
+                  key={action.id}
+                  className="button button-ghost button-compact"
+                  type="button"
+                  onClick={() => void handleQuickRun(action.type)}
+                  disabled={!quickInputValue.trim() || runningAction !== null}
+                  title={action.label}
+                >
+                  <CornerDownLeft size={13} strokeWidth={2.3} />
+                  {action.shortLabel}
+                </button>
+              ))}
             </div>
           </section>
         </div>
