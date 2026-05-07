@@ -4,10 +4,11 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
+  Github,
   RotateCcw,
   Settings as SettingsIcon,
-  X,
   Trash2,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { runPrompt, testProvider } from "./api";
@@ -611,6 +612,17 @@ function App() {
               <span className="footer-count">{results.length} result{results.length !== 1 ? "s" : ""}</span>
             </div>
             <div className="footer-actions">
+              <a
+                className="icon-button footer-settings"
+                href="https://github.com/limengke123/LinguaCheck"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View on GitHub"
+                aria-label="View on GitHub"
+                style={{ display: 'grid' }}
+              >
+                <Github size={15} strokeWidth={2} />
+              </a>
               <button
                 className="icon-button footer-settings"
                 type="button"
