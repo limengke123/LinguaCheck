@@ -1,5 +1,8 @@
 # LinguaCheck
 
+[![Pure Frontend](https://img.shields.io/badge/Pure%20Frontend-yes-brightgreen)](https://img.shields.io/badge/Pure%20Frontend-yes-brightgreen)
+[![No Backend Required](https://img.shields.io/badge/No%20Backend%20Required-yes-brightgreen)](https://img.shields.io/badge/No%20Backend%20Required-yes-brightgreen)
+
 LinguaCheck is a pure frontend AI English assistant for reading, writing checks, translation, polishing, naturalness review, and Obsidian Markdown export.
 
 It runs entirely in the browser. There is no backend, database, login system, or server-side API proxy.
@@ -157,4 +160,10 @@ This makes Vite emit assets with the correct `/LinguaCheck/` base path.
 npm run dev       # Start local dev server
 npm run build     # Type-check and build production assets
 npm run preview   # Preview production build locally
+
+## Tech Stack
+
+- TypeScript
+- Vite
+- Tailwind CSS
 ```
