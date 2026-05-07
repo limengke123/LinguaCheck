@@ -7,6 +7,25 @@ import type { ActionType, AssistantResult, ProviderConfig } from "../types";
 
 type ResultTypeFilter = "all" | ActionType;
 
+const EXPANDED_IDS_KEY = "linguacheck.expandedIds";
+
+function loadExpandedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(EXPANDED_IDS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as string[];
+      return new Set(parsed);
+    }
+  } catch {
+    // ignore
+  }
+  return new Set();
+}
+
+function saveExpandedIds(ids: Set<string>) {
+  localStorage.setItem(EXPANDED_IDS_KEY, JSON.stringify([...ids]));
+}
+
 export function useResultsWorkflow(
   promptActions: PromptAction[],
   activeProvider: ProviderConfig | undefined,
@@ -14,7 +33,7 @@ export function useResultsWorkflow(
 ) {
   const [results, setResults] = useState<AssistantResult[]>([]);
   const [runningAction, setRunningAction] = useState<ActionType | null>(null);
-  const [expandedResultIds, setExpandedResultIds] = useState<Set<string>>(() => new Set());
+  const [expandedResultIds, setExpandedResultIds] = useState<Set<string>>(() => loadExpandedIds());
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   const [resultKeyword, setResultKeyword] = useState("");
   const [resultTypeFilter, setResultTypeFilter] = useState<ResultTypeFilter>("all");
@@ -24,13 +43,21 @@ export function useResultsWorkflow(
       .then((loaded) => {
         if (loaded.length > 0) {
           setResults(loaded);
-          if (loaded[0]) {
+          const savedExpanded = loadExpandedIds();
+          const validExpanded = loaded.some((r) => savedExpanded.has(r.id));
+          if (validExpanded) {
+            setExpandedResultIds(savedExpanded);
+          } else if (loaded[0]) {
             setExpandedResultIds(new Set([loaded[0].id]));
           }
         }
       })
       .catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    saveExpandedIds(expandedResultIds);
+  }, [expandedResultIds]);
 
   const filteredResults = useMemo(() => {
     const keyword = resultKeyword.trim().toLowerCase();
@@ -176,6 +203,11 @@ export function useResultsWorkflow(
 
   function deleteResult(resultId: string) {
     setResults((current) => current.filter((r) => r.id !== resultId));
+    setExpandedResultIds((current) => {
+      const next = new Set(current);
+      next.delete(resultId);
+      return next;
+    });
     void dbDeleteResult(resultId);
   }
 
@@ -204,6 +236,7 @@ export function useResultsWorkflow(
 
   function clearAllResults() {
     setResults([]);
+    setExpandedResultIds(new Set());
     void dbClearResults();
   }
 
