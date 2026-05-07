@@ -333,12 +333,17 @@ function ResultCard({
         </button>
         {!isLoading && (
           <div className="result-actions">
-            {result.temporary && (
-              <span className="preview-mode-pill" style={{ fontSize: 10, gap: 4 }}>
-                <Circle size={7} />
-                临时
-              </span>
-            )}
+            {result.temporary && onPromoteTemporary ? (
+              <button
+                className="icon-button result-icon-button"
+                type="button"
+                onClick={onPromoteTemporary}
+                title="Keep"
+                aria-label="Keep result"
+              >
+                <Bookmark size={15} strokeWidth={2.2} />
+              </button>
+            ) : null}
             {isEditing ? (
               <>
                 <button
@@ -388,17 +393,6 @@ function ResultCard({
             >
               {result.pinned ? <PinOff size={15} strokeWidth={2.2} /> : <Pin size={15} strokeWidth={2.2} />}
             </button>
-            {result.temporary && onPromoteTemporary ? (
-              <button
-                className="icon-button result-icon-button"
-                type="button"
-                onClick={onPromoteTemporary}
-                title="Keep"
-                aria-label="Keep result"
-              >
-                <Bookmark size={15} strokeWidth={2.2} />
-              </button>
-            ) : null}
             <button
               className="icon-button result-icon-button"
               type="button"
