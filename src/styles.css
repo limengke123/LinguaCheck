@@ -582,6 +582,21 @@ textarea:focus-visible {
   outline: none;
 }
 
+.input-edit-textarea--active {
+  background: #e8f0fe;
+}
+
+.input-edit-inline-button {
+  margin-left: 8px;
+  vertical-align: middle;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.input-edit-inline-button:hover {
+  opacity: 1;
+}
+
 .input-edit-actions {
   display: flex;
   gap: 8px;

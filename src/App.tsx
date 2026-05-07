@@ -847,6 +847,7 @@ function ResultCard({
   const [inputCollapsed, setInputCollapsed] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedInput, setEditedInput] = useState(result.input);
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const INPUT_PREVIEW_LENGTH = 200;
 
   const created = new Intl.DateTimeFormat(undefined, {
@@ -857,6 +858,12 @@ function ResultCard({
 
   const isLoading = result.status === "loading";
   const inputLong = result.input.length > INPUT_PREVIEW_LENGTH;
+
+  useEffect(() => {
+    if (isEditing) {
+      editTextareaRef.current?.focus();
+    }
+  }, [isEditing]);
 
   return (
     <article
@@ -923,30 +930,16 @@ function ResultCard({
                 </button>
               </>
             ) : (
-              <>
-                <button
-                  className="icon-button result-icon-button"
-                  type="button"
-                  onClick={() => {
-                    setEditedInput(result.input);
-                    setIsEditing(true);
-                  }}
-                  title="Edit input"
-                  aria-label="Edit input"
-                >
-                  <Edit2 size={15} strokeWidth={2.2} />
-                </button>
-                <button
-                  className="icon-button result-icon-button"
-                  type="button"
-                  onClick={() => onRerun()}
-                  disabled={running}
-                  title="Re-run"
-                  aria-label="Re-run"
-                >
-                  <RotateCcw size={15} strokeWidth={2.2} />
-                </button>
-              </>
+              <button
+                className="icon-button result-icon-button"
+                type="button"
+                onClick={() => onRerun()}
+                disabled={running}
+                title="Re-run"
+                aria-label="Re-run"
+              >
+                <RotateCcw size={15} strokeWidth={2.2} />
+              </button>
             )}
             <button
               className="icon-button result-icon-button"
@@ -967,7 +960,8 @@ function ResultCard({
             isEditing ? (
               <div className="input-edit-area">
                 <textarea
-                  className="input-edit-textarea"
+                  ref={editTextareaRef}
+                  className="input-edit-textarea input-edit-textarea--active"
                   value={editedInput}
                   onChange={(e) => setEditedInput(e.target.value)}
                   rows={Math.max(3, editedInput.split("\n").length)}
@@ -1012,6 +1006,18 @@ function ResultCard({
                 </button>
                 <p className={`input-quote-text ${inputCollapsed && inputLong ? "input-quote-text--collapsed" : ""}`}>
                   {result.input}
+                  <button
+                    className="icon-button input-edit-inline-button"
+                    type="button"
+                    onClick={() => {
+                      setEditedInput(result.input);
+                      setIsEditing(true);
+                    }}
+                    title="Edit input"
+                    aria-label="Edit input"
+                  >
+                    <Edit2 size={14} strokeWidth={2.2} />
+                  </button>
                 </p>
               </blockquote>
             )
