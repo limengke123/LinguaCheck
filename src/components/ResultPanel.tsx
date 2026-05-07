@@ -321,20 +321,22 @@ function ResultCard({
             <ChevronRight size={17} strokeWidth={2.25} />
           )}
         </button>
-        <button className="result-title-button" type="button" onClick={onToggle}>
-          <span className="result-input-preview">{isLoading ? "思考中..." : result.input || "(empty)"}</span>
-        </button>
-        {(() => {
-          const iconName = result.iconName;
-          const Icon = iconName ? (LucideIcons as unknown as Record<string, React.ElementType>)[iconName] : null;
-          return (
-            <small className="result-meta">
-              {Icon ? <Icon size={13} strokeWidth={2.2} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> : null}
-              {result.actionLabel} · {created}
-              {isLoading ? "" : ` · ${result.durationMs}ms`}
-            </small>
-          );
-        })()}
+        <div className="result-title-group">
+          <button className="result-title-button" type="button" onClick={onToggle}>
+            <span className="result-input-preview">{isLoading ? "思考中..." : result.input || "(empty)"}</span>
+          </button>
+          {(() => {
+            const iconName = result.iconName;
+            const Icon = iconName ? (LucideIcons as unknown as Record<string, React.ElementType>)[iconName] : null;
+            return (
+              <small className="result-meta">
+                {Icon ? <Icon size={13} strokeWidth={2.2} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> : null}
+                {result.actionLabel} · {created}
+                {isLoading ? "" : ` · ${result.durationMs}ms`}
+              </small>
+            );
+          })()}
+        </div>
         {!isLoading && (
           <div className="result-actions">
             {result.temporary && onPromoteTemporary ? (
