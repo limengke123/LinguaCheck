@@ -306,12 +306,6 @@ function ResultCard({
     >
       <header className="result-card-header">
         <span className="result-index">#{index}</span>
-        {result.temporary && (
-          <span className="preview-mode-pill" style={{ fontSize: 10, gap: 4 }}>
-            <Circle size={7} />
-            临时
-          </span>
-        )}
         <button
           className="collapse-button"
           type="button"
@@ -339,6 +333,12 @@ function ResultCard({
         </button>
         {!isLoading && (
           <div className="result-actions">
+            {result.temporary && (
+              <span className="preview-mode-pill" style={{ fontSize: 10, gap: 4 }}>
+                <Circle size={7} />
+                临时
+              </span>
+            )}
             {isEditing ? (
               <>
                 <button
