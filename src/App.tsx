@@ -26,6 +26,7 @@ import { buildPrompt } from "./prompts";
 import type { PromptAction } from "./prompts";
 import { createProvider, createPromptAction, defaultPromptActions, loadPromptActions, loadResults, loadSettings, savePromptActions, saveResult, saveSettings, deleteResult as dbDeleteResult, clearResults as dbClearResults } from "./storage";
 import type { ActionType, AssistantResult, ProviderConfig, Settings } from "./types";
+import { ThemeSelector, getInitialTheme } from "./components/ThemeSelector";
 
 type ConnectionCheck = {
   status: "checking" | "ok" | "error";
@@ -43,7 +44,10 @@ function App() {
   const [activeConfigTab, setActiveConfigTab] = useState<ConfigTab | null>(null);
   const [darkMode, setDarkMode] = useState<'light' | 'dark' | 'system'>(() => {
     const saved = localStorage.getItem('linguacheck.darkMode');
-    return (saved as 'light' | 'dark' | 'system') || 'system';
+    if (saved === 'light' || saved === 'dark' || saved === 'system') {
+      return saved;
+    }
+    return getInitialTheme();
   });
   const [promptActions, setPromptActions] = useState<PromptAction[]>(() => loadPromptActions());
   const [connectionChecks, setConnectionChecks] = useState<Record<string, ConnectionCheck>>({});
@@ -939,9 +943,9 @@ function ConfigPanel({
   }, [promptActions]);
 
   const tabs: { id: 'provider' | 'prompts' | 'settings'; label: string }[] = [
+    { id: 'settings', label: 'Settings' },
     { id: 'provider', label: 'Provider' },
     { id: 'prompts', label: 'Prompts' },
-    { id: 'settings', label: 'Settings' },
   ];
 
   function startEdit(item: PromptAction) {
@@ -1069,8 +1073,11 @@ function ConfigPanel({
               </button>
             ))}
           </div>
-          <button className="button button-primary" type="button" onClick={() => onTabChange(null)}>
-            Done
+          <button className="icon-button" type="button" onClick={() => onTabChange(null)} title="Close" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
           </button>
         </header>
 
@@ -1510,56 +1517,11 @@ function ConfigPanel({
             <div className="settings-tab-content">
               <div className="settings-section">
                 <h3>Appearance</h3>
-                <div className="dark-mode-selector">
-                  <div className="dark-mode-options" role="radiogroup" aria-label="Theme">
-                    <button
-                      type="button"
-                      className={`dark-mode-option ${darkMode === 'light' ? 'dark-mode-option--active' : ''}`}
-                      onClick={() => setDarkMode('light')}
-                      role="radio"
-                      aria-checked={darkMode === 'light'}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-                      Light
-                    </button>
-                    <button
-                      type="button"
-                      className={`dark-mode-option ${darkMode === 'dark' ? 'dark-mode-option--active' : ''}`}
-                      onClick={() => setDarkMode('dark')}
-                      role="radio"
-                      aria-checked={darkMode === 'dark'}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                      Dark
-                    </button>
-                    <button
-                      type="button"
-                      className={`dark-mode-option ${darkMode === 'system' ? 'dark-mode-option--active' : ''}`}
-                      onClick={() => setDarkMode('system')}
-                      role="radio"
-                      aria-checked={darkMode === 'system'}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                      System
-                    </button>
-                  </div>
-                </div>
+                <ThemeSelector value={darkMode} onChange={setDarkMode} />
               </div>
             </div>
           )}
         </div>
-
-        {activeTab === 'prompts' && (
-          <div className="config-footer">
-            <button
-              className="button button-primary"
-              type="button"
-              onClick={handleSaveAndClose}
-            >
-              Save
-            </button>
-          </div>
-        )}
       </section>
     </div>
   );

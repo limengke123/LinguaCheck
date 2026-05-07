@@ -1604,3 +1604,37 @@ textarea:focus-visible {
 .config-panel .button.button-primary:hover {
   background: var(--blue-hover);
 }
+
+/* Theme selector - compact inline buttons */
+.theme-selector {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface-strong);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.theme-selector-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.theme-selector-btn:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.theme-selector-btn--active {
+  background: var(--surface);
+  color: var(--accent);
+}
