@@ -587,10 +587,12 @@ textarea:focus-visible {
 
 .result-card--collapsed {
   background: color-mix(in oklab, var(--surface) 72%, transparent);
+  cursor: pointer;
 }
 
 .result-card:has([aria-label="Unpin"]) {
   border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  background: color-mix(in oklab, var(--accent) 8%, var(--surface));
   box-shadow: 0 6px 16px color-mix(in oklab, var(--accent) 15%, transparent);
 }
 

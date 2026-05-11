@@ -305,6 +305,17 @@ function ResultCard({
               : "result-card result-card--collapsed") +
         (result.temporary ? " result-card--temporary" : "")
       }
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest(".result-actions") ||
+            target.closest(".collapse-button") ||
+            target.closest(".result-title-button") ||
+            target.closest(".input-quote-header") ||
+            target.closest(".input-edit-area")) {
+          return;
+        }
+        onToggle();
+      }}
     >
       <header className="result-card-header">
         <span className="result-index">#{index}</span>
