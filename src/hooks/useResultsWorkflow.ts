@@ -6,6 +6,7 @@ import type { PromptAction } from "../prompts";
 import type { ActionType, AssistantResult, ProviderConfig } from "../types";
 
 type ResultTypeFilter = "all" | ActionType;
+type ResultPinFilter = "all" | "pinned" | "unpinned";
 
 const EXPANDED_IDS_KEY = "linguacheck.expandedIds";
 
@@ -37,6 +38,7 @@ export function useResultsWorkflow(
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
   const [resultKeyword, setResultKeyword] = useState("");
   const [resultTypeFilter, setResultTypeFilter] = useState<ResultTypeFilter>("all");
+  const [resultPinFilter, setResultPinFilter] = useState<ResultPinFilter>("all");
   const [resultsLoading, setResultsLoading] = useState(true);
   const isInitializedRef = useRef(false);
 
@@ -76,10 +78,11 @@ export function useResultsWorkflow(
           result.output.toLowerCase().includes(keyword) ||
           (result.error?.toLowerCase().includes(keyword) ?? false);
         const matchesType = resultTypeFilter === "all" || result.action === resultTypeFilter;
-        return matchesKeyword && matchesType;
+        const matchesPin = resultPinFilter === "all" || (resultPinFilter === "pinned" ? result.pinned : !result.pinned);
+        return matchesKeyword && matchesType && matchesPin;
       })
       .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)));
-  }, [resultKeyword, resultTypeFilter, results]);
+  }, [resultKeyword, resultTypeFilter, resultPinFilter, results]);
 
   async function runAction(actionType: ActionType, sourceInput: string, temporary = false) {
     const action = promptActions.find((item) => item.type === actionType);
@@ -288,6 +291,8 @@ export function useResultsWorkflow(
     setResultKeyword,
     resultTypeFilter,
     setResultTypeFilter,
+    resultPinFilter,
+    setResultPinFilter,
     runAction,
     rerunResult,
     toggleResult,

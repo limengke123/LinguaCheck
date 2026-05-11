@@ -35,6 +35,8 @@ type ResultPanelProps = {
   resultTypeFilter: "all" | ActionType;
   onKeywordChange: (value: string) => void;
   onTypeFilterChange: (value: "all" | ActionType) => void;
+  resultPinFilter: "all" | "pinned" | "unpinned";
+  onPinFilterChange: (value: "all" | "pinned" | "unpinned") => void;
   onCopyResult: (result: AssistantResult) => void;
   onRerunResult: (result: AssistantResult, newInput?: string) => void;
   onRestoreInput: (input: string) => void;
@@ -62,6 +64,8 @@ export function ResultPanel({
   resultTypeFilter,
   onKeywordChange,
   onTypeFilterChange,
+  resultPinFilter,
+  onPinFilterChange,
   onCopyResult,
   onRerunResult,
   onRestoreInput,
@@ -107,6 +111,29 @@ export function ResultPanel({
           options={typeOptions}
           onChange={(value) => onTypeFilterChange(value as "all" | ActionType)}
         />
+        <div className="pin-filter-group">
+          <button
+            className={`pin-filter-button ${resultPinFilter === "all" ? "pin-filter-button--active" : ""}`}
+            type="button"
+            onClick={() => onPinFilterChange("all")}
+          >
+            全部
+          </button>
+          <button
+            className={`pin-filter-button ${resultPinFilter === "pinned" ? "pin-filter-button--active" : ""}`}
+            type="button"
+            onClick={() => onPinFilterChange("pinned")}
+          >
+            <Pin size={13} strokeWidth={2.2} />
+          </button>
+          <button
+            className={`pin-filter-button ${resultPinFilter === "unpinned" ? "pin-filter-button--active" : ""}`}
+            type="button"
+            onClick={() => onPinFilterChange("unpinned")}
+          >
+            <PinOff size={13} strokeWidth={2.2} />
+          </button>
+        </div>
       </div>
 
       <div className="result-list">

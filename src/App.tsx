@@ -50,6 +50,8 @@ function App() {
     setResultKeyword,
     resultTypeFilter,
     setResultTypeFilter,
+    resultPinFilter,
+    setResultPinFilter,
     runAction,
     rerunResult,
     toggleResult,
@@ -201,9 +203,11 @@ function App() {
           resultsLoading={resultsLoading}
           activeProvider={activeProvider}
           resultKeyword={resultKeyword}
-          resultTypeFilter={resultTypeFilter}
           onKeywordChange={setResultKeyword}
+          resultTypeFilter={resultTypeFilter}
           onTypeFilterChange={setResultTypeFilter}
+          resultPinFilter={resultPinFilter}
+          onPinFilterChange={setResultPinFilter}
           onCopyResult={(result) => void copyResultOutput(result)}
           onRerunResult={(result, newInput) => void rerunResult(result, newInput)}
           onRestoreInput={handleRestore}
