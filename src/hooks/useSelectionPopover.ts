@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type SelectionState = {
   text: string;
@@ -11,6 +11,7 @@ export function useSelectionPopover(
   textareaRef: React.RefObject<HTMLTextAreaElement | null>,
 ) {
   const [selection, setSelection] = useState<SelectionState>(null);
+  const suppressNextPosUpdate = useRef(false);
 
   useEffect(() => {
     function handleSelectionChange() {
@@ -30,13 +31,25 @@ export function useSelectionPopover(
         return;
       }
       const textarea = textareaRef.current;
+      const outputEl = document.querySelector(".output-panel");
+
       if (textarea && textarea.contains(anchor)) {
-        setSelection({ text, source: "input", x: 0, y: 0 });
+        setSelection((prev) => {
+          if (prev && prev.source === "input" && prev.x !== 0) {
+            return { text, source: "input", x: prev.x, y: prev.y };
+          }
+          return { text, source: "input", x: 0, y: 0 };
+        });
         return;
       }
-      const outputEl = document.querySelector(".output-panel");
       if (outputEl && outputEl.contains(anchor)) {
-        setSelection({ text, source: "output", x: 0, y: 0 });
+        setSelection((prev) => {
+          if (prev && prev.source === "output" && prev.x !== 0 && !suppressNextPosUpdate.current) {
+            return { text, source: "output", x: prev.x, y: prev.y };
+          }
+          suppressNextPosUpdate.current = false;
+          return { text, source: "output", x: 0, y: 0 };
+        });
         return;
       }
       setSelection(null);
@@ -44,33 +57,28 @@ export function useSelectionPopover(
 
     function handleMouseUp() {
       const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || !sel.rangeCount) {
-        setSelection(null);
-        return;
-      }
+      if (!sel || sel.isCollapsed || !sel.rangeCount) return;
       const text = sel.toString().trim();
-      if (!text) {
-        setSelection(null);
-        return;
-      }
+      if (!text) return;
       const anchor = sel.anchorNode;
-      if (!anchor) {
-        setSelection(null);
-        return;
-      }
+      if (!anchor) return;
       const range = sel.getRangeAt(0);
       const rect = range.getBoundingClientRect();
+      if (rect.width === 0) return;
+
       const textarea = textareaRef.current;
+      const outputEl = document.querySelector(".output-panel");
+
       if (textarea && textarea.contains(anchor)) {
+        suppressNextPosUpdate.current = true;
         setSelection({ text, source: "input", x: rect.left + rect.width / 2, y: rect.top });
         return;
       }
-      const outputEl = document.querySelector(".output-panel");
       if (outputEl && outputEl.contains(anchor)) {
+        suppressNextPosUpdate.current = true;
         setSelection({ text, source: "output", x: rect.left + rect.width / 2, y: rect.top });
         return;
       }
-      setSelection(null);
     }
 
     function handleClick(event: MouseEvent) {
