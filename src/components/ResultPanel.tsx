@@ -20,7 +20,7 @@ import {
   X,
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type { ActionType, AssistantResult, ProviderConfig } from "../types";
 import { CustomSelect } from "./CustomSelect";
 
@@ -88,6 +88,54 @@ export function ResultPanel({
       label,
     })),
   ];
+  const todayStr = new Date().toDateString();
+
+  const groupedResults = useMemo(() => {
+    const groups: { label: string; results: AssistantResult[] }[] = [];
+    const todayItems: AssistantResult[] = [];
+    const byDate: Record<string, AssistantResult[]> = {};
+
+    for (const result of filteredResults) {
+      if (result.pinned) {
+        todayItems.push(result);
+        continue;
+      }
+      const d = new Date(result.createdAt);
+      const dateKey = d.toDateString();
+      if (dateKey === todayStr) {
+        todayItems.push(result);
+      } else {
+        if (!byDate[dateKey]) byDate[dateKey] = [];
+        byDate[dateKey].push(result);
+      }
+    }
+
+    const sortedDates = Object.keys(byDate).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    for (const dateKey of sortedDates) {
+      const d = new Date(dateKey);
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+      let label: string;
+      if (diffDays === 1) label = "昨天";
+      else if (diffDays < 7) label = `${diffDays}天前`;
+      else if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) label = "本月";
+      else label = `${d.getMonth() + 1}月${d.getDate()}日`;
+      groups.push({ label, results: byDate[dateKey] });
+    }
+
+    return { today: todayItems, groups };
+  }, [filteredResults, todayStr]);
+
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = useCallback((label: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  }, []);
 
   return (
     <section className="output-panel" aria-label="Output cards">
@@ -156,23 +204,66 @@ export function ResultPanel({
             </div>
           </div>
         ) : (
-          filteredResults.map((result, index) => (
-            <ResultCard
-              index={index + 1}
-              copied={copiedResultId === result.id}
-              expanded={expandedResultIds.has(result.id)}
-              key={result.id}
-              result={result}
-              running={runningAction !== null}
-              onCopy={() => onCopyResult(result)}
-              onRerun={(newInput) => onRerunResult(result, newInput)}
-              onRestore={(input) => onRestoreInput(input)}
-              onToggle={() => onToggleResult(result.id)}
-              onDelete={() => onDeleteResult(result.id)}
-              onPinToggle={() => onPinResult(result.id)}
-              onPromoteTemporary={result.temporary ? () => onPromoteTemporaryResult(result.id) : undefined}
-            />
-          ))
+          <>
+            {groupedResults.today.length > 0 && (
+              <div className="result-group">
+                <div className="result-group-header">
+                  <span className="result-group-label">Today</span>
+                </div>
+                {groupedResults.today.map((result, index) => (
+                  <ResultCard
+                    index={index + 1}
+                    copied={copiedResultId === result.id}
+                    expanded={expandedResultIds.has(result.id)}
+                    key={result.id}
+                    result={result}
+                    running={runningAction !== null}
+                    onCopy={() => onCopyResult(result)}
+                    onRerun={(newInput) => onRerunResult(result, newInput)}
+                    onRestore={(input) => onRestoreInput(input)}
+                    onToggle={() => onToggleResult(result.id)}
+                    onDelete={() => onDeleteResult(result.id)}
+                    onPinToggle={() => onPinResult(result.id)}
+                    onPromoteTemporary={result.temporary ? () => onPromoteTemporaryResult(result.id) : undefined}
+                  />
+                ))}
+              </div>
+            )}
+            {groupedResults.groups.map((group) => (
+              <div key={group.label} className="result-group">
+                <button
+                  className="result-group-header result-group-header--collapsible"
+                  type="button"
+                  onClick={() => toggleGroup(group.label)}
+                >
+                  <span className="result-group-label">{group.label}</span>
+                  <span className="result-group-count">{group.results.length}</span>
+                  {collapsedGroups.has(group.label) ? (
+                    <ChevronRight size={14} strokeWidth={2.2} />
+                  ) : (
+                    <ChevronDown size={14} strokeWidth={2.2} />
+                  )}
+                </button>
+                {!collapsedGroups.has(group.label) && group.results.map((result, index) => (
+                  <ResultCard
+                    index={index + 1}
+                    copied={copiedResultId === result.id}
+                    expanded={expandedResultIds.has(result.id)}
+                    key={result.id}
+                    result={result}
+                    running={runningAction !== null}
+                    onCopy={() => onCopyResult(result)}
+                    onRerun={(newInput) => onRerunResult(result, newInput)}
+                    onRestore={(input) => onRestoreInput(input)}
+                    onToggle={() => onToggleResult(result.id)}
+                    onDelete={() => onDeleteResult(result.id)}
+                    onPinToggle={() => onPinResult(result.id)}
+                    onPromoteTemporary={result.temporary ? () => onPromoteTemporaryResult(result.id) : undefined}
+                  />
+                ))}
+              </div>
+            ))}
+          </>
         )}
       </div>
 
