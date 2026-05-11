@@ -363,15 +363,7 @@ export function ResultPanel({
           >
             <SettingsIcon size={15} strokeWidth={2} />
           </button>
-          <button
-            className="button button-ghost button-compact"
-            type="button"
-            disabled={results.length === 0}
-            onClick={onClearAll}
-          >
-            Clear
-          </button>
-        </div>
+          </div>
       </div>
     </section>
   );
