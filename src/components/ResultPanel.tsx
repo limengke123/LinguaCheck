@@ -17,6 +17,7 @@ import {
   Settings as SettingsIcon,
   Trash2,
   Volume2,
+  ChevronUp,
   X,
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
@@ -32,6 +33,7 @@ type ResultPanelProps = {
   runningAction: ActionType | null;
   resultsLoading: boolean;
   activeProvider: ProviderConfig | undefined;
+  providers: ProviderConfig[];
   resultKeyword: string;
   resultTypeFilter: "all" | ActionType;
   onKeywordChange: (value: string) => void;
@@ -48,6 +50,7 @@ type ResultPanelProps = {
   onExportMarkdown: () => void;
   onOpenConfig: () => void;
   onClearAll: () => void;
+  onSetActiveProvider: (id: string) => void;
   previewMode: boolean;
   onTogglePreviewMode: () => void;
   onOpenQuickInput: () => void;
@@ -61,6 +64,7 @@ export function ResultPanel({
   runningAction,
   resultsLoading,
   activeProvider,
+  providers,
   resultKeyword,
   resultTypeFilter,
   onKeywordChange,
@@ -77,6 +81,7 @@ export function ResultPanel({
   onExportMarkdown,
   onOpenConfig,
   onClearAll,
+  onSetActiveProvider,
   previewMode,
   onTogglePreviewMode,
   onOpenQuickInput,
@@ -269,11 +274,46 @@ export function ResultPanel({
 
       <div className="output-footer">
         <div className="footer-left">
-          <span className="footer-provider">{activeProvider?.name || "No provider"}</span>
+          {providers.length > 1 ? (
+            <div className="provider-select-wrap">
+              <select
+                className="provider-select"
+                value={activeProvider?.id ?? ""}
+                onChange={(e) => onSetActiveProvider(e.target.value)}
+              >
+                {providers.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} strokeWidth={2.2} />
+            </div>
+          ) : (
+            <button
+              className="footer-provider-btn"
+              type="button"
+              onClick={onOpenConfig}
+              title="配置 Provider"
+            >
+              {activeProvider?.name || "点击配置 Provider"}
+              <SettingsIcon size={12} strokeWidth={2.2} />
+            </button>
+          )}
           <span className="footer-sep">·</span>
           <span className="footer-count">
             {filteredResults.length}/{results.length} results
           </span>
+          {results.length > 0 && (
+            <>
+              <span className="footer-sep">·</span>
+              <button
+                className="footer-clear-btn"
+                type="button"
+                onClick={onClearAll}
+              >
+                清空
+              </button>
+            </>
+          )}
         </div>
         <div className="footer-actions">
           <button

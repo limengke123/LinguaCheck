@@ -615,12 +615,69 @@ textarea:focus-visible {
   font-weight: 500;
 }
 
+.provider-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.provider-select {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  padding-right: 14px;
+  cursor: pointer;
+  outline: none;
+}
+
+.provider-select-wrap svg {
+  position: absolute;
+  right: 0;
+  pointer-events: none;
+  color: var(--muted);
+}
+
+.footer-provider-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-provider-btn:hover {
+  opacity: 0.75;
+}
+
 .footer-sep {
   color: var(--line);
 }
 
 .footer-count {
   color: var(--muted);
+}
+
+.footer-clear-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-clear-btn:hover {
+  color: var(--red);
 }
 
 .footer-actions {

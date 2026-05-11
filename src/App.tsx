@@ -254,6 +254,7 @@ function App() {
           runningAction={runningAction}
           resultsLoading={resultsLoading}
           activeProvider={activeProvider}
+          providers={settings.providers}
           resultKeyword={resultKeyword}
           onKeywordChange={setResultKeyword}
           resultTypeFilter={resultTypeFilter}
@@ -270,6 +271,7 @@ function App() {
           onExportMarkdown={exportAllResultsAsMarkdown}
           onOpenConfig={() => setActiveConfigTab("provider")}
           onClearAll={clearAllResults}
+          onSetActiveProvider={setActiveProvider}
           previewMode={previewMode}
           onTogglePreviewMode={() => {
             setPreviewMode((current) => {
