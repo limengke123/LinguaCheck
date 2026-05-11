@@ -16,10 +16,11 @@ import {
   Search,
   Settings as SettingsIcon,
   Trash2,
+  Volume2,
   X,
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { ActionType, AssistantResult, ProviderConfig } from "../types";
 import { CustomSelect } from "./CustomSelect";
 
@@ -139,8 +140,20 @@ export function ResultPanel({
       <div className="result-list">
         {resultsLoading ? null : filteredResults.length === 0 ? (
           <div className="empty-state">
-            <h2>等待输出</h2>
-            <p>输入文本并选择一个动作，结果会以 Markdown 卡片保留在这里。你也可以通过上方搜索和状态筛选快速定位历史记录。</p>
+            <div className="empty-icon-wrap">
+              <svg className="empty-icon" viewBox="0 0 80 80" fill="none">
+                <rect x="10" y="16" width="60" height="48" rx="6" stroke="currentColor" strokeWidth="2" strokeDasharray="4 3"/>
+                <path d="M24 32h32M24 42h20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="56" cy="52" r="10" fill="var(--accent)" opacity="0.15"/>
+                <path d="M52 52h8M56 48v8" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <div className="empty-float-dot" />
+            </div>
+            <h2>准备就绪</h2>
+            <p>输入内容，选择一个动作<br/>AI 会在这里输出结果</p>
+            <div className="empty-shortcuts">
+              <kbd>⌘O</kbd> 快速执行 &nbsp;·&nbsp; <kbd>⌘↵</kbd> 发送
+            </div>
           </div>
         ) : (
           filteredResults.map((result, index) => (
@@ -265,6 +278,8 @@ function ResultCard({
   const [inputCollapsed, setInputCollapsed] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedInput, setEditedInput] = useState(result.input);
+  const [selectedText, setSelectedText] = useState("");
+  const [speakingText, setSpeakingText] = useState("");
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const streamTailRef = useRef<HTMLDivElement>(null);
   const INPUT_PREVIEW_LENGTH = 200;
@@ -320,6 +335,37 @@ function ResultCard({
     streamTailRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [expanded, isLoading, result.output]);
 
+  const handleSpeak = useCallback((text: string) => {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 1.0;
+    setSpeakingText(text);
+    utterance.onend = () => setSpeakingText("");
+    utterance.onerror = () => setSpeakingText("");
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  const handleStopSpeaking = useCallback(() => {
+    window.speechSynthesis.cancel();
+    setSpeakingText("");
+  }, []);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      const text = selection?.toString().trim();
+      if (text && text.length > 0) {
+        setSelectedText(text);
+      } else {
+        setSelectedText("");
+      }
+    };
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => document.removeEventListener("selectionchange", handleSelectionChange);
+  }, [expanded]);
+
   return (
     <article
       className={
@@ -333,6 +379,7 @@ function ResultCard({
         (result.temporary ? " result-card--temporary" : "")
       }
       onClick={(e) => {
+        if (expanded) return;
         const target = e.target as HTMLElement;
         if (target.closest(".result-actions") ||
             target.closest(".collapse-button") ||
@@ -563,6 +610,39 @@ function ResultCard({
               <button className="icon-button copy-block-button" type="button" onClick={onCopy} title="Copy output" aria-label="Copy output">
                 <Copy size={15} strokeWidth={2.2} />
               </button>
+              {selectedText ? (
+                speakingText === selectedText ? (
+                  <button
+                    className="icon-button tts-button tts-button--active"
+                    type="button"
+                    onClick={handleStopSpeaking}
+                    title="Stop"
+                    aria-label="Stop speaking"
+                  >
+                    <Volume2 size={15} strokeWidth={2.2} />
+                  </button>
+                ) : (
+                  <button
+                    className="icon-button tts-button"
+                    type="button"
+                    onClick={() => handleSpeak(selectedText)}
+                    title="Speak selected"
+                    aria-label="Speak selected text"
+                  >
+                    <Volume2 size={15} strokeWidth={2.2} />
+                  </button>
+                )
+              ) : (
+                <button
+                  className="icon-button copy-block-button tts-idle-button"
+                  type="button"
+                  onClick={() => handleSpeak(result.output)}
+                  title="Read aloud"
+                  aria-label="Read output aloud"
+                >
+                  <Volume2 size={15} strokeWidth={2.2} />
+                </button>
+              )}
               <div className="markdown-body">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.output}</ReactMarkdown>
               </div>

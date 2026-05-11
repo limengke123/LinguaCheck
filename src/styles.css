@@ -609,15 +609,75 @@ textarea:focus-visible {
   text-align: center;
 }
 
+.empty-state {
+  display: grid;
+  min-height: 260px;
+  flex: 1;
+  place-content: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.empty-icon-wrap {
+  position: relative;
+  display: block;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+.empty-float-dot {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.3;
+  animation: float-dot 2.4s ease-in-out infinite;
+}
+
+@keyframes float-dot {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
 .empty-state h2 {
   margin: 0;
   font-size: 22px;
+  font-weight: 600;
 }
 
 .empty-state p {
-  max-width: 360px;
-  margin: 8px 0 0;
+  max-width: 320px;
+  margin: 8px auto 0;
   color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.empty-shortcuts {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.empty-shortcuts kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-strong);
+  font-family: inherit;
+  font-size: 11px;
 }
 
 .result-card {
@@ -940,6 +1000,30 @@ textarea:focus-visible {
 
 .markdown-block:hover .copy-block-button,
 .markdown-block:focus-within .copy-block-button {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tts-button {
+  position: absolute;
+  top: 10px;
+  right: 38px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  color: var(--blue);
+}
+
+.tts-button--active {
+  opacity: 1;
+  transform: translateY(0);
+  color: var(--red);
+}
+
+.markdown-block:hover .tts-button,
+.markdown-block:focus-within .tts-button {
   opacity: 1;
   transform: translateY(0);
 }
