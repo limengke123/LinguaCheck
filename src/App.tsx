@@ -22,6 +22,7 @@ function App() {
   const [quickInputHighlightedIndex, setQuickInputHighlightedIndex] = useState(0);
   type ConfigTab = 'provider' | 'prompts' | 'settings';
   const [activeConfigTab, setActiveConfigTab] = useState<ConfigTab | null>(null);
+  const [speakingText, setSpeakingText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const quickInputRef = useRef<HTMLInputElement>(null);
   const quickInputRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -118,6 +119,22 @@ function App() {
     document.documentElement.classList.toggle("compact-output", compactOutput);
   }, []);
 
+  function handleSpeak(text: string) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 1.0;
+    setSpeakingText(text);
+    utterance.onend = () => setSpeakingText("");
+    utterance.onerror = () => setSpeakingText("");
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function handleStopSpeaking() {
+    window.speechSynthesis.cancel();
+    setSpeakingText("");
+  }
+
   async function handleAction(actionType: ActionType, selectionText?: string) {
     const trimmedInput = (selectionText ?? input).trim();
     if (!trimmedInput || !activeProvider) {
@@ -177,6 +194,33 @@ function App() {
                 {action.shortLabel}
               </button>
             ))}
+            {selection.source === "output" && (
+              speakingText === selection.text ? (
+                <button
+                  className="button button-ghost button-compact"
+                  type="button"
+                  onClick={handleStopSpeaking}
+                  title="Stop"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  className="button button-ghost button-compact"
+                  type="button"
+                  onClick={() => handleSpeak(selection.text)}
+                  title="Read aloud"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                  </svg>
+                </button>
+              )
+            )}
           </div>
         </div>
       ) : null}

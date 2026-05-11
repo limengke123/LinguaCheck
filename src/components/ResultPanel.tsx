@@ -278,8 +278,6 @@ function ResultCard({
   const [inputCollapsed, setInputCollapsed] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedInput, setEditedInput] = useState(result.input);
-  const [selectedText, setSelectedText] = useState("");
-  const [speakingText, setSpeakingText] = useState("");
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const streamTailRef = useRef<HTMLDivElement>(null);
   const INPUT_PREVIEW_LENGTH = 200;
@@ -334,37 +332,6 @@ function ResultCard({
     if (!expanded || !isLoading || !result.output) return;
     streamTailRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [expanded, isLoading, result.output]);
-
-  const handleSpeak = useCallback((text: string) => {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = 1.0;
-    setSpeakingText(text);
-    utterance.onend = () => setSpeakingText("");
-    utterance.onerror = () => setSpeakingText("");
-    window.speechSynthesis.speak(utterance);
-  }, []);
-
-  const handleStopSpeaking = useCallback(() => {
-    window.speechSynthesis.cancel();
-    setSpeakingText("");
-  }, []);
-
-  useEffect(() => {
-    if (!expanded) return;
-    const handleSelectionChange = () => {
-      const selection = window.getSelection();
-      const text = selection?.toString().trim();
-      if (text && text.length > 0) {
-        setSelectedText(text);
-      } else {
-        setSelectedText("");
-      }
-    };
-    document.addEventListener("selectionchange", handleSelectionChange);
-    return () => document.removeEventListener("selectionchange", handleSelectionChange);
-  }, [expanded]);
 
   return (
     <article
@@ -610,39 +577,6 @@ function ResultCard({
               <button className="icon-button copy-block-button" type="button" onClick={onCopy} title="Copy output" aria-label="Copy output">
                 <Copy size={15} strokeWidth={2.2} />
               </button>
-              {selectedText ? (
-                speakingText === selectedText ? (
-                  <button
-                    className="icon-button tts-button tts-button--active"
-                    type="button"
-                    onClick={handleStopSpeaking}
-                    title="Stop"
-                    aria-label="Stop speaking"
-                  >
-                    <Volume2 size={15} strokeWidth={2.2} />
-                  </button>
-                ) : (
-                  <button
-                    className="icon-button tts-button"
-                    type="button"
-                    onClick={() => handleSpeak(selectedText)}
-                    title="Speak selected"
-                    aria-label="Speak selected text"
-                  >
-                    <Volume2 size={15} strokeWidth={2.2} />
-                  </button>
-                )
-              ) : (
-                <button
-                  className="icon-button copy-block-button tts-idle-button"
-                  type="button"
-                  onClick={() => handleSpeak(result.output)}
-                  title="Read aloud"
-                  aria-label="Read output aloud"
-                >
-                  <Volume2 size={15} strokeWidth={2.2} />
-                </button>
-              )}
               <div className="markdown-body">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.output}</ReactMarkdown>
               </div>
