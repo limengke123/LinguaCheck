@@ -218,33 +218,138 @@ textarea:focus-visible {
   overflow: hidden;
   border: 1px solid var(--line-soft);
   border-radius: 14px;
-  background: color-mix(in oklab, var(--surface) 90%, transparent);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 10px 24px color-mix(in oklab, var(--ink) 6%, transparent);
+  background: var(--surface);
+  box-shadow: 0 4px 20px color-mix(in oklab, var(--ink) 6%, transparent);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .composer-shell:focus-within {
-  border-color: var(--line);
-  box-shadow: 0 2px 8px color-mix(in oklab, var(--ink) 6%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 50%, var(--line));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 10%, transparent);
 }
 
 .main-input {
   width: 100%;
-  min-height: 260px;
+  min-height: 200px;
   flex: 1;
   resize: none;
-  padding: 20px 20px 60px;
+  padding: 16px 16px 56px;
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: 18px;
-  line-height: 1.62;
+  font-size: 16px;
+  line-height: 1.65;
 }
 
 .main-input::placeholder {
   color: var(--muted);
   opacity: 0.7;
+}
+
+.composer-actions {
+  position: absolute;
+  left: 16px;
+  bottom: 36px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 120px);
+}
+
+.action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 120ms ease;
+  white-space: nowrap;
+}
+
+.action-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.action-chip--running {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.action-chip kbd {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.action-chip:hover kbd,
+.action-chip--running kbd {
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.action-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  transition: all 120ms ease;
+  flex-shrink: 0;
+}
+
+.action-send:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--accent) 85%, black);
+  transform: scale(1.08);
+}
+
+.action-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.composer-footer {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.composer-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 100ms ease;
+}
+
+.composer-clear:hover {
+  color: var(--ink);
 }
 
 .icon-button {
@@ -368,72 +473,9 @@ textarea:focus-visible {
   height: 12px;
 }
 
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.action-button {
-  display: flex;
-  min-width: 0;
-  min-height: 64px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 3px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--ink);
-  text-align: left;
-}
-
-.action-button:hover:not(:disabled) {
-  border-color: color-mix(in oklab, var(--accent) 45%, transparent);
-  background: var(--accent-soft);
-}
-
-.action-button span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow: hidden;
-  width: 100%;
-  color: var(--accent);
-  font-size: 16px;
-  font-weight: 650;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.action-kbd {
-  display: inline-flex;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
-  border-radius: 4px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 20px;
-  justify-content: center;
-  align-items: center;
-  gap: 1px;
-}
-
-.action-button small {
-  display: block;
-  overflow: hidden;
-  width: 100%;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.action-grid,
+.action-grid-header {
+  display: none;
 }
 
 .output-panel {
