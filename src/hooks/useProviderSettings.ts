@@ -63,6 +63,10 @@ export function useProviderSettings() {
     clearConnectionCheck(providerId);
   }
 
+  function updateSettings(patch: Partial<Settings>) {
+    setSettings((current) => ({ ...current, ...patch }));
+  }
+
   function removeProvider(providerId: string) {
     setSettings((current) => {
       if (current.providers.length <= 1) {
@@ -112,5 +116,6 @@ export function useProviderSettings() {
     setActiveProvider,
     setDefaultProvider,
     handleTestProvider,
+    updateSettings,
   };
 }

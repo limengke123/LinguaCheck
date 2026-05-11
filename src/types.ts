@@ -38,6 +38,7 @@ export type Settings = {
   providers: ProviderConfig[];
   activeProviderId: string;
   defaultProviderId: string;
+  ttsVoiceName?: string;
 };
 
 export type AssistantResult = {

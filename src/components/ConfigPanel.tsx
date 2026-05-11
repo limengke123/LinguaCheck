@@ -16,6 +16,7 @@ import {
   Wand2,
   X,
   Power,
+  Volume2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeSelector } from "./ThemeSelector";
@@ -23,6 +24,7 @@ import { CustomSelect } from "./CustomSelect";
 import { createPromptAction, defaultPromptActions } from "../storage";
 import type { PromptAction } from "../prompts";
 import type { ProviderConfig, Settings } from "../types";
+import { VoiceSelector } from "./VoiceSelector";
 
 export type ConnectionCheck = {
   status: "checking" | "ok" | "error";
@@ -47,6 +49,7 @@ type ConfigPanelProps = {
   onUpdateProvider: (providerId: string, patch: Partial<ProviderConfig>) => void;
   onGeneratePrompt: (description: string) => Promise<string>;
   onSavePromptActions: (actions: PromptAction[]) => void;
+  onUpdateSettings: (patch: Partial<Settings>) => void;
 };
 
 export function ConfigPanel({
@@ -65,6 +68,7 @@ export function ConfigPanel({
   onUpdateProvider,
   onGeneratePrompt,
   onSavePromptActions,
+  onUpdateSettings,
 }: ConfigPanelProps) {
   const [localActions, setLocalActions] = useState(promptActions);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -597,6 +601,13 @@ export function ConfigPanel({
               <div className="settings-section">
                 <h3>Appearance</h3>
                 <ThemeSelector value={darkMode} onChange={setDarkMode} />
+              </div>
+              <div className="settings-section">
+                <h3>TTS Voice</h3>
+                <VoiceSelector
+                  selectedVoiceName={settings.ttsVoiceName}
+                  onChange={(name) => onUpdateSettings({ ttsVoiceName: name })}
+                />
               </div>
               <div className="settings-section settings-info-grid">
                 <article className="settings-info-card">

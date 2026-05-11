@@ -39,6 +39,7 @@ function App() {
     setActiveProvider,
     setDefaultProvider,
     handleTestProvider,
+    updateSettings,
   } = useProviderSettings();
   const {
     results,
@@ -122,12 +123,12 @@ function App() {
   function handleSpeak(text: string) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    const enVoice = voices.find((v) => v.lang.startsWith("en") && !v.lang.includes("-US"));
-    if (enVoice) {
-      utterance.voice = enVoice;
-    } else {
-      utterance.lang = "en-US";
+    if (settings.ttsVoiceName) {
+      const voices = window.speechSynthesis.getVoices();
+      const selected = voices.find((v) => v.name === settings.ttsVoiceName);
+      if (selected) {
+        utterance.voice = selected;
+      }
     }
     utterance.rate = 0.95;
     utterance.pitch = 1.0;
@@ -310,6 +311,7 @@ function App() {
             setPromptActions(actions);
             savePromptActions(actions);
           }}
+          onUpdateSettings={updateSettings}
         />
       ) : null}
 
