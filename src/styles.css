@@ -253,7 +253,7 @@ textarea:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-width: calc(100% - 120px);
+  max-width: 100%;
 }
 
 .action-chip {
