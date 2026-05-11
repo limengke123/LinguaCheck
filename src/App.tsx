@@ -122,8 +122,15 @@ function App() {
   function handleSpeak(text: string) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find((v) => v.lang.startsWith("en") && !v.lang.includes("-US"));
+    if (enVoice) {
+      utterance.voice = enVoice;
+    } else {
+      utterance.lang = "en-US";
+    }
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
     setSpeakingText(text);
     utterance.onend = () => setSpeakingText("");
     utterance.onerror = () => setSpeakingText("");
