@@ -39,6 +39,7 @@ export const defaultSettings: Settings = {
   providers: [defaultProvider],
   activeProviderId: DEFAULT_PROVIDER_ID,
   defaultProviderId: DEFAULT_PROVIDER_ID,
+  ttsVoiceName: "google uk english male",
 };
 
 export function loadSettings(): Settings {

@@ -95,14 +95,17 @@ export function ResultPanel({
   ];
   const todayStr = new Date().toDateString();
 
+  const pinnedLabel = "Pinned";
+
   const groupedResults = useMemo(() => {
     const groups: { label: string; results: AssistantResult[] }[] = [];
+    const pinnedItems: AssistantResult[] = [];
     const todayItems: AssistantResult[] = [];
     const byDate: Record<string, AssistantResult[]> = {};
 
     for (const result of filteredResults) {
       if (result.pinned) {
-        todayItems.push(result);
+        pinnedItems.push(result);
         continue;
       }
       const d = new Date(result.createdAt);
@@ -128,7 +131,7 @@ export function ResultPanel({
       groups.push({ label, results: byDate[dateKey] });
     }
 
-    return { today: todayItems, groups };
+    return { pinned: pinnedItems, today: todayItems, groups };
   }, [filteredResults, todayStr]);
 
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
@@ -210,6 +213,40 @@ export function ResultPanel({
           </div>
         ) : (
           <>
+            {groupedResults.pinned.length > 0 && (
+              <div className="result-group">
+                <button
+                  className="result-group-header result-group-header--collapsible"
+                  type="button"
+                  onClick={() => toggleGroup(pinnedLabel)}
+                >
+                  <span className="result-group-label">{pinnedLabel}</span>
+                  <span className="result-group-count">{groupedResults.pinned.length}</span>
+                  {collapsedGroups.has(pinnedLabel) ? (
+                    <ChevronRight size={14} strokeWidth={2.2} />
+                  ) : (
+                    <ChevronDown size={14} strokeWidth={2.2} />
+                  )}
+                </button>
+                {!collapsedGroups.has(pinnedLabel) && groupedResults.pinned.map((result, index) => (
+                  <ResultCard
+                    index={index + 1}
+                    copied={copiedResultId === result.id}
+                    expanded={expandedResultIds.has(result.id)}
+                    key={result.id}
+                    result={result}
+                    running={runningAction !== null}
+                    onCopy={() => onCopyResult(result)}
+                    onRerun={(newInput) => onRerunResult(result, newInput)}
+                    onRestore={(input) => onRestoreInput(input)}
+                    onToggle={() => onToggleResult(result.id)}
+                    onDelete={() => onDeleteResult(result.id)}
+                    onPinToggle={() => onPinResult(result.id)}
+                    onPromoteTemporary={result.temporary ? () => onPromoteTemporaryResult(result.id) : undefined}
+                  />
+                ))}
+              </div>
+            )}
             {groupedResults.today.length > 0 && (
               <div className="result-group">
                 <div className="result-group-header">
@@ -406,6 +443,9 @@ function ResultCard({
   const INPUT_PREVIEW_LENGTH = 200;
 
   const created = new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
